@@ -1,0 +1,2175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>VocEd Assessment Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1f2937;
+    --border: #30363d;
+    --accent: #f97316;
+    --accent2: #fb923c;
+    --green: #22c55e;
+    --red: #ef4444;
+    --yellow: #eab308;
+    --blue: #3b82f6;
+    --text: #e6edf3;
+    --muted: #7d8590;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Sora', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* ── LAYOUT ── */
+  #app { min-height: 100vh; }
+  .page { display: none; }
+  .page.active { display: flex; flex-direction: column; min-height: 100vh; }
+
+  /* ── NAV ── */
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 32px; border-bottom: 1px solid var(--border);
+    background: var(--surface); position: sticky; top: 0; z-index: 100;
+  }
+  .logo { font-size: 1.2rem; font-weight: 800; color: var(--accent); letter-spacing: -0.5px; }
+  .logo span { color: var(--text); }
+  .nav-badge { background: var(--accent); color: white; font-size: 0.7rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+
+  /* ── HERO / HOME ── */
+  .hero {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    flex-direction: column; text-align: center; padding: 60px 24px;
+    background: radial-gradient(ellipse at 50% 0%, #1a0d00 0%, var(--bg) 60%);
+  }
+  .hero-tag { background: #1a0d00; border: 1px solid var(--accent); color: var(--accent); font-size: 0.75rem; font-weight: 600; padding: 5px 14px; border-radius: 20px; margin-bottom: 24px; letter-spacing: 1px; text-transform: uppercase; }
+  .hero h1 { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 800; line-height: 1.1; margin-bottom: 16px; }
+  .hero h1 em { color: var(--accent); font-style: normal; }
+  .hero p { color: var(--muted); font-size: 1.05rem; max-width: 500px; margin-bottom: 40px; line-height: 1.7; }
+  .btn-row { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+  .btn { padding: 14px 28px; border-radius: var(--radius); font-size: 0.95rem; font-weight: 700; cursor: pointer; border: none; transition: all 0.2s; font-family: 'Sora', sans-serif; }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover { background: var(--accent2); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(249,115,22,0.3); }
+  .btn-outline { background: transparent; color: var(--text); border: 1.5px solid var(--border); }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
+  .btn-sm { padding: 8px 18px; font-size: 0.82rem; }
+  .btn-green { background: var(--green); color: white; }
+  .btn-green:hover { opacity: 0.88; transform: translateY(-1px); }
+  .btn-red { background: var(--red); color: white; }
+  .btn-red:hover { opacity: 0.88; }
+  .btn-blue { background: var(--blue); color: white; }
+  .btn-blue:hover { opacity: 0.88; transform: translateY(-1px); }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none !important; }
+
+  /* ── CARDS ── */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; }
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+  .stat-card .val { font-size: 2rem; font-weight: 800; color: var(--accent); }
+  .stat-card .lbl { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
+
+  /* ── FORMS ── */
+  .form-group { margin-bottom: 18px; }
+  label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+  input, select, textarea {
+    width: 100%; background: var(--surface2); border: 1.5px solid var(--border);
+    color: var(--text); padding: 12px 16px; border-radius: 8px; font-family: 'Sora', sans-serif;
+    font-size: 0.95rem; outline: none; transition: border-color 0.2s;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+  select option { background: var(--surface2); }
+
+  /* ── SECTION HEADER ── */
+  .section-header { padding: 32px 32px 0; }
+  .section-header h2 { font-size: 1.5rem; font-weight: 800; }
+  .section-header p { color: var(--muted); font-size: 0.9rem; margin-top: 4px; }
+  .section-body { padding: 24px 32px; flex: 1; }
+
+  /* ── TEACHER PANEL ── */
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 28px; }
+  .tab { padding: 10px 20px; font-size: 0.88rem; font-weight: 600; cursor: pointer; border-radius: 8px 8px 0 0; color: var(--muted); background: none; border: none; font-family: 'Sora', sans-serif; transition: all 0.2s; }
+  .tab.active { color: var(--accent); background: var(--surface2); border-bottom: 2px solid var(--accent); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ── AI GENERATOR ── */
+  .gen-box { background: linear-gradient(135deg, #1a0d00, var(--surface)); border: 1px solid var(--accent); border-radius: var(--radius); padding: 28px; margin-bottom: 24px; }
+  .gen-box h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 6px; }
+  .gen-box p { color: var(--muted); font-size: 0.88rem; margin-bottom: 20px; }
+  .gen-controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+  .gen-controls .form-group { margin-bottom: 0; flex: 1; min-width: 160px; }
+
+  /* ── QUESTION LIST ── */
+  .q-item { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 12px; position: relative; }
+  .q-item .q-type { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; padding: 3px 10px; border-radius: 20px; margin-bottom: 10px; display: inline-block; }
+  .type-mcq { background: #1e3a5f; color: var(--blue); }
+  .type-tf { background: #14532d; color: var(--green); }
+  .type-fill { background: #451a03; color: var(--accent); }
+  .q-item .q-text { font-size: 0.95rem; font-weight: 600; margin-bottom: 10px; }
+  .q-options { display: flex; flex-wrap: wrap; gap: 8px; }
+  .q-opt { font-size: 0.82rem; padding: 4px 12px; border-radius: 6px; background: var(--surface); border: 1px solid var(--border); }
+  .q-opt.correct { border-color: var(--green); color: var(--green); background: #14532d22; }
+  .q-delete { position: absolute; top: 14px; right: 14px; background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1.1rem; transition: color 0.2s; }
+  .q-delete:hover { color: var(--red); }
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
+  .empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
+
+  /* ── LOADING ── */
+  .loader { display: inline-flex; gap: 6px; align-items: center; }
+  .loader span { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: bounce 0.8s ease-in-out infinite; }
+  .loader span:nth-child(2) { animation-delay: 0.15s; }
+  .loader span:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-8px)} }
+
+  /* ── RESULTS TABLE ── */
+  table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  th { text-align: left; padding: 12px 16px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); border-bottom: 1px solid var(--border); }
+  td { padding: 14px 16px; border-bottom: 1px solid var(--border); }
+  tr:hover td { background: var(--surface2); }
+  .grade-badge { padding: 3px 12px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; }
+  .grade-A { background: #14532d; color: var(--green); }
+  .grade-B { background: #1e3a5f; color: var(--blue); }
+  .grade-C { background: #451a03; color: var(--accent); }
+  .grade-D { background: #422006; color: var(--yellow); }
+  .grade-F { background: #450a0a; color: var(--red); }
+  .progress-bar { height: 6px; background: var(--border); border-radius: 10px; overflow: hidden; margin-top: 4px; }
+  .progress-fill { height: 100%; border-radius: 10px; transition: width 0.4s; }
+
+  /* ── STUDENT TEST ── */
+  .test-header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .timer { font-family: 'DM Mono', monospace; font-size: 1.3rem; font-weight: 500; color: var(--accent); }
+  .timer.warning { color: var(--red); animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+  .q-progress { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 24px; }
+  .q-dot { width: 30px; height: 30px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; cursor: pointer; border: 1.5px solid var(--border); color: var(--muted); background: var(--surface2); transition: all 0.15s; }
+  .q-dot.answered { background: var(--accent); color: white; border-color: var(--accent); }
+  .q-dot.current { border-color: var(--text); color: var(--text); }
+  .q-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 32px; margin-bottom: 20px; }
+  .q-card .q-num { font-size: 0.78rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+  .q-card .q-text { font-size: 1.05rem; font-weight: 600; line-height: 1.6; margin-bottom: 24px; }
+  .options-list { display: flex; flex-direction: column; gap: 10px; }
+  .option-btn { display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--surface2); cursor: pointer; text-align: left; font-family: 'Sora', sans-serif; font-size: 0.93rem; color: var(--text); transition: all 0.15s; }
+  .option-btn:hover { border-color: var(--accent); background: #1a0d00; }
+  .option-btn.selected { border-color: var(--accent); background: #1a0d00; color: var(--accent); }
+  .option-btn.correct { border-color: var(--green); background: #14532d22; color: var(--green); }
+  .option-btn.wrong { border-color: var(--red); background: #450a0a22; color: var(--red); }
+  .opt-letter { width: 28px; height: 28px; border-radius: 6px; background: var(--border); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; flex-shrink: 0; }
+  .fill-input { margin-top: 8px; }
+  .nav-btns { display: flex; gap: 12px; }
+
+  /* ── RESULT PAGE ── */
+  .result-hero { text-align: center; padding: 48px 24px; }
+  .score-ring { width: 160px; height: 160px; margin: 0 auto 24px; position: relative; }
+  .score-ring svg { transform: rotate(-90deg); }
+  .score-ring .score-text { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .score-ring .score-text .pct { font-size: 2rem; font-weight: 800; color: var(--accent); }
+  .score-ring .score-text .lbl { font-size: 0.75rem; color: var(--muted); }
+  .breakdown-list { display: flex; flex-direction: column; gap: 10px; max-height: 400px; overflow-y: auto; }
+  .bd-item { background: var(--surface2); border-radius: 10px; padding: 14px 18px; border-left: 3px solid var(--border); }
+  .bd-item.bd-correct { border-left-color: var(--green); }
+  .bd-item.bd-wrong { border-left-color: var(--red); }
+  .bd-item.bd-partial { border-left-color: var(--yellow); }
+
+  /* ── TOAST ── */
+  #toast { position: fixed; bottom: 32px; right: 32px; background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 14px 22px; border-radius: 10px; font-size: 0.88rem; font-weight: 600; z-index: 9999; transform: translateY(100px); opacity: 0; transition: all 0.3s; box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+  #toast.show { transform: translateY(0); opacity: 1; }
+
+  /* ── MODAL ── */
+  .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 500; align-items: center; justify-content: center; }
+  .modal-bg.open { display: flex; }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 32px; max-width: 500px; width: 90%; }
+  .modal h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: 8px; }
+  .modal p { color: var(--muted); font-size: 0.9rem; margin-bottom: 24px; }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+
+  @media (max-width: 600px) {
+    nav { padding: 14px 16px; }
+    .section-body { padding: 16px; }
+    .section-header { padding: 20px 16px 0; }
+    .test-header { padding: 12px 16px; }
+    .q-card { padding: 20px; }
+    .gen-controls { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ══════════════ HOME PAGE ══════════════ -->
+  <div id="page-home" class="page active">
+    <nav>
+      <div class="logo">VocEd<span>Assess</span></div>
+      <div class="nav-badge">Grade 6–8</div>
+    </nav>
+    <div class="hero">
+      <div class="hero-tag">✦ AI-Powered Assessment Platform</div>
+      <h1>Smart Tests for<br/><em>Vocational Education</em></h1>
+      <p>AI-generated assessments with instant grading, detailed analytics, and persistent student records — built for Middle School educators.</p>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="showPage('page-teacher-login')">🎓 Teacher Portal</button>
+        <button class="btn btn-outline" onclick="showPage('page-student-login')">📝 Take a Test</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ TEACHER LOGIN ══════════════ -->
+  <div id="page-teacher-login" class="page">
+    <nav>
+      <div class="logo">VocEd<span>Assess</span></div>
+      <button class="btn btn-outline btn-sm" onclick="showPage('page-home')">← Back</button>
+    </nav>
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:40px 16px;">
+      <div class="card" style="max-width:420px;width:100%;">
+        <h2 style="font-size:1.4rem;font-weight:800;margin-bottom:6px;">Teacher Login</h2>
+        <p style="color:var(--muted);font-size:0.88rem;margin-bottom:24px;">Access your dashboard to manage tests and view results.</p>
+        <div class="form-group">
+          <label>Teacher ID / Username</label>
+          <input type="text" id="teacher-user" placeholder="e.g. teacher01" />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="teacher-pass" placeholder="Enter password" />
+        </div>
+        <button class="btn btn-primary" style="width:100%" onclick="teacherLogin()">Login to Dashboard</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ TEACHER DASHBOARD ══════════════ -->
+  <div id="page-teacher" class="page">
+    <nav>
+      <div class="logo">VocEd<span>Assess</span></div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <span style="font-size:0.82rem;color:var(--muted)">Teacher Panel</span>
+        <button class="btn btn-outline btn-sm" onclick="showPage('page-home')">Logout</button>
+      </div>
+    </nav>
+    <div class="section-header">
+      <h2>Dashboard</h2>
+      <p>Manage AI-generated questions and view student results</p>
+    </div>
+    <div class="section-body">
+      <div class="card-grid" style="margin-bottom:28px;" id="stat-cards">
+        <div class="stat-card"><div class="val" id="stat-q">0</div><div class="lbl">Questions in Bank</div></div>
+        <div class="stat-card"><div class="val" id="stat-s">0</div><div class="lbl">Students Tested</div></div>
+        <div class="stat-card"><div class="val" id="stat-avg">—</div><div class="lbl">Average Score</div></div>
+        <div class="stat-card"><div class="val" id="stat-pass">—</div><div class="lbl">Pass Rate</div></div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('tab-generate',this)">🤖 Auto Load</button>
+        <button class="tab" onclick="switchTab('tab-addq',this)">➕ Add Question</button>
+        <button class="tab" onclick="switchTab('tab-questions',this)">📋 Question Bank</button>
+        <button class="tab" onclick="switchTab('tab-results',this)">📊 Results</button>
+
+        <button class="tab" onclick="switchTab('tab-settings',this)">⚙️ Settings</button>
+      </div>
+
+      <!-- TAB: AI GENERATOR -->
+      <div id="tab-generate" class="tab-content active">
+        <div class="gen-box">
+          <h3>🤖 Auto Question Loader</h3>
+          <p>Select a class and chapter — questions will load instantly from the built-in NCERT Kaushal Bodh question bank.</p>
+          <div class="gen-controls">
+            <div class="form-group">
+              <label>Select Class</label>
+              <select id="gen-class" onchange="updateGenTopics()">
+                <option value="">-- Choose Class --</option>
+                <option value="6">Class 6</option>
+                <option value="7">Class 7</option>
+                <option value="8">Class 8</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Select Chapter / Topic</label>
+              <select id="gen-topic">
+                <option value="">-- Choose Chapter --</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>No. of Questions</label>
+              <select id="gen-count">
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="30" selected>30</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" id="gen-btn" onclick="generateQuestions()" style="height:44px;white-space:nowrap;">⚡ Load Questions</button>
+          </div>
+        </div>
+        <div id="gen-status" style="display:none;padding:20px;text-align:center;">
+          <div class="loader"><span></span><span></span><span></span></div>
+          <p style="margin-top:12px;color:var(--muted);font-size:0.88rem;" id="gen-status-text">Loading questions…</p>
+        </div>
+        <div id="gen-preview"></div>
+      </div>
+
+      <!-- TAB: ADD QUESTION MANUALLY -->
+      <div id="tab-addq" class="tab-content">
+        <div class="card" style="max-width:640px;">
+          <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:4px;">➕ Add Your Own MCQ</h3>
+          <p style="color:var(--muted);font-size:0.85rem;margin-bottom:20px;">Select class &amp; chapter, write the question with 4 options, mark the correct answer.</p>
+
+          <!-- Class + Chapter selectors -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="form-group">
+              <label>Class</label>
+              <select id="aq-class" onchange="updateAQChapters('aq')">
+                <option value="">-- Select Class --</option>
+                <option value="6">Class 6</option>
+                <option value="7">Class 7</option>
+                <option value="8">Class 8</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Chapter / Topic</label>
+              <select id="aq-chapter">
+                <option value="">-- Select Chapter --</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Question Text</label>
+            <textarea id="aq-question" rows="3" placeholder="Type your question here…" style="resize:vertical;"></textarea>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;">
+            <div class="form-group" style="margin-bottom:0"><label>Option A</label><input type="text" id="aq-a" placeholder="Option A" /></div>
+            <div class="form-group" style="margin-bottom:0"><label>Option B</label><input type="text" id="aq-b" placeholder="Option B" /></div>
+            <div class="form-group" style="margin-bottom:0"><label>Option C</label><input type="text" id="aq-c" placeholder="Option C" /></div>
+            <div class="form-group" style="margin-bottom:0"><label>Option D</label><input type="text" id="aq-d" placeholder="Option D" /></div>
+          </div>
+          <div class="form-group">
+            <label>Correct Answer</label>
+            <select id="aq-correct">
+              <option value="">-- Select correct option --</option>
+              <option value="A">A</option><option value="B">B</option>
+              <option value="C">C</option><option value="D">D</option>
+            </select>
+          </div>
+          <div id="aq-msg" style="display:none;padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:0.87rem;font-weight:600;"></div>
+          <button class="btn btn-primary" onclick="addManualQuestion()" style="width:100%;">✅ Add to Question Bank</button>
+        </div>
+
+        <!-- True/False adder -->
+        <div class="card" style="max-width:640px;margin-top:20px;">
+          <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:4px;">➕ Add True / False Question</h3>
+          <p style="color:var(--muted);font-size:0.85rem;margin-bottom:20px;">Select class &amp; chapter, write a statement, mark True or False.</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="form-group">
+              <label>Class</label>
+              <select id="tf-class" onchange="updateAQChapters('tf')">
+                <option value="">-- Select Class --</option>
+                <option value="6">Class 6</option>
+                <option value="7">Class 7</option>
+                <option value="8">Class 8</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Chapter / Topic</label>
+              <select id="tf-chapter">
+                <option value="">-- Select Chapter --</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Statement</label>
+            <textarea id="tf-question" rows="2" placeholder="Type your true/false statement here…" style="resize:vertical;"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Correct Answer</label>
+            <select id="tf-correct">
+              <option value="">-- Select --</option>
+              <option value="True">True</option>
+              <option value="False">False</option>
+            </select>
+          </div>
+          <div id="tf-msg" style="display:none;padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:0.87rem;font-weight:600;"></div>
+          <button class="btn btn-primary" onclick="addTFQuestion()" style="width:100%;">✅ Add to Question Bank</button>
+        </div>
+      </div>
+
+      <!-- TAB: QUESTION BANK -->
+      <div id="tab-questions" class="tab-content">
+        <!-- Filter bar -->
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:20px;background:var(--surface2);padding:16px;border-radius:var(--radius);border:1px solid var(--border);">
+          <div class="form-group" style="margin-bottom:0;flex:1;min-width:140px;">
+            <label>Filter by Class</label>
+            <select id="qb-filter-class" onchange="updateQBChapters()">
+              <option value="">All Classes</option>
+              <option value="6">Class 6</option>
+              <option value="7">Class 7</option>
+              <option value="8">Class 8</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:0;flex:2;min-width:180px;">
+            <label>Filter by Chapter</label>
+            <select id="qb-filter-chapter" onchange="renderQBank()">
+              <option value="">All Chapters</option>
+            </select>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="resetQBFilter()" style="height:44px;">✕ Clear Filter</button>
+          <button class="btn btn-red btn-sm" onclick="clearQuestions()" style="height:44px;">🗑 Clear All</button>
+        </div>
+        <p style="color:var(--muted);font-size:0.88rem;margin-bottom:16px;" id="qbank-count">No questions yet.</p>
+        <div id="qbank-list"></div>
+      </div>
+
+      <!-- TAB: RESULTS -->
+      <div id="tab-results" class="tab-content">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+          <p style="color:var(--muted);font-size:0.88rem;">All student submissions</p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-primary" onclick="loadResultsFromSheet()" style="font-size:0.85rem;">📥 Sheet se Results Load Karo</button>
+            <button class="btn btn-green btn-sm" onclick="downloadExcel()">📥 Download Excel</button>
+            <button class="btn btn-blue btn-sm" onclick="downloadCSV()">⬇️ Download CSV</button>
+            <button class="btn btn-red btn-sm" onclick="clearResults()">🗑 Clear</button>
+          </div>
+        </div>
+        <!-- Info box -->
+        <div style="background:#0d2818;border:1px solid var(--green);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:0.83rem;color:var(--muted);line-height:1.7;">
+          💡 <b style="color:var(--green)">Students ne doosre phone se test diya?</b> Upar <b style="color:var(--text)">📥 Sheet se Results Load Karo</b> button dabao — Google Sheet se saare results yahan aa jayenge!
+        </div>
+        <!-- Google Sheets instruction box -->
+        <div style="background:#0d2818;border:1px solid var(--green);border-radius:10px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:flex-start;gap:14px;">
+          <div style="font-size:1.4rem;flex-shrink:0;">📊</div>
+          <div>
+            <div style="font-weight:700;color:var(--green);margin-bottom:4px;">How to open results in Google Sheets</div>
+            <div style="font-size:0.83rem;color:var(--muted);line-height:1.7;">
+              1. Click <b style="color:var(--text)">⬇️ Download CSV</b> above &nbsp;→&nbsp;
+              2. Go to <a href="https://sheets.new" target="_blank" style="color:var(--blue);text-decoration:underline;">sheets.new</a> &nbsp;→&nbsp;
+              3. Click <b style="color:var(--text)">File → Import → Upload</b> &nbsp;→&nbsp;
+              4. Select the downloaded CSV file &nbsp;→&nbsp; Done! ✅
+            </div>
+          </div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table id="results-table">
+            <thead>
+              <tr>
+                <th>Student</th><th>Roll No.</th><th>Class</th><th>Section</th><th>Topic</th><th>Score</th><th>Grade</th><th>Time</th><th>Date</th><th>Details</th>
+              </tr>
+            </thead>
+            <tbody id="results-tbody"></tbody>
+          </table>
+        </div>
+        <div id="results-empty" class="empty-state" style="display:none;">
+          <div class="icon">📊</div>
+          <p>No results yet. Students haven't taken any tests.</p>
+        </div>
+      </div>
+
+
+      <div id="tab-settings" class="tab-content">
+
+        <!-- GOOGLE SHEET SETUP CARD -->
+        <div class="card" style="max-width:600px;margin-bottom:20px;border-color:var(--green);">
+          <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:6px;">📊 Connect to Google Sheets</h3>
+          <p style="color:var(--muted);font-size:0.83rem;margin-bottom:16px;line-height:1.6;">
+            Every student result will be saved <b style="color:var(--text)">directly to your Google Sheet automatically</b> — no downloads needed. Follow these one-time steps:
+          </p>
+          <div style="background:var(--surface2);border-radius:10px;padding:16px;margin-bottom:16px;font-size:0.82rem;line-height:2;color:var(--muted);">
+            <b style="color:var(--accent)">Step 1:</b> Go to <a href="https://sheets.google.com" target="_blank" style="color:var(--blue)">sheets.google.com</a> → Create a new blank sheet<br>
+            <b style="color:var(--accent)">Step 2:</b> Click <b style="color:var(--text)">Extensions → Apps Script</b><br>
+            <b style="color:var(--accent)">Step 3:</b> Delete all existing code. Paste the code shown below → Click <b style="color:var(--text)">💾 Save</b><br>
+            <b style="color:var(--accent)">Step 4:</b> Click <b style="color:var(--text)">Deploy → New Deployment → Web App</b><br>
+            <b style="color:var(--accent)">Step 5:</b> Set <b style="color:var(--text)">"Who has access" = Anyone</b> → Click Deploy → Copy the Web App URL<br>
+            <b style="color:var(--accent)">Step 6:</b> Paste that URL below → Click <b style="color:var(--text)">✅ Save URL</b>
+          </div>
+
+          <!-- Apps Script code to copy -->
+          <div style="margin-bottom:16px;">
+            <label style="display:block;font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">📋 Copy this code into Apps Script:</label>
+            <div style="position:relative;">
+              <pre id="gas-code" style="background:#0d1117;border:1px solid var(--border);border-radius:8px;padding:14px;font-size:0.75rem;color:#7ee787;overflow-x:auto;white-space:pre-wrap;line-height:1.6;max-height:260px;overflow-y:auto;">function corsResponse(text) {
+  return ContentService.createTextOutput(text)
+    .setMimeType(ContentService.MimeType.TEXT);
+}
+
+function handleRequest(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var p = e.parameter || {};
+
+  if (p.action === 'saveResult') {
+    if (sheet.getLastRow() === 0) {
+      sheet.appendRow(['Name','Roll No','Class','Section','Topic','Score','Total','Percentage','Grade','Result','Date','Time(mins)']);
+    }
+    sheet.appendRow([
+      p.name || '', p.roll || '', p.cls || '', p.section || '',
+      p.topic || '', p.score || '', p.total || '', p.pct || '',
+      p.grade || '', p.result || '', p.date || '', p.time || ''
+    ]);
+    return corsResponse('OK');
+  }
+
+  if (p.action === 'getResults') {
+    var data = sheet.getDataRange().getValues();
+    if (data.length <= 1) return corsResponse('[]');
+    return ContentService.createTextOutput(JSON.stringify(data.slice(1)))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  return corsResponse('OK');
+}
+
+function doGet(e)  { return handleRequest(e); }
+function doPost(e) { return handleRequest(e); }</pre>
+              <button class="btn btn-outline btn-sm" onclick="copyGASCode()" style="position:absolute;top:8px;right:8px;">📋 Copy</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Paste your Web App URL here</label>
+            <input type="text" id="set-gas-url" placeholder="https://script.google.com/macros/s/…/exec" />
+          </div>
+          <div id="gas-status" style="display:none;padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:0.85rem;font-weight:600;"></div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-green" onclick="saveGASUrl()">✅ Save URL</button>
+            <button class="btn btn-outline btn-sm" onclick="testGASUrl()">🔄 Test Connection</button>
+          </div>
+        </div>
+
+        <!-- TEST SETTINGS CARD -->
+        <div class="card" style="max-width:600px;">
+          <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:20px;">⚙️ Test Settings</h3>
+          <div class="form-group">
+            <label>Test Title</label>
+            <input type="text" id="set-title" placeholder="Vocational Education Assessment" />
+          </div>
+          <div class="form-group">
+            <label>Time Limit (minutes, 0 = no limit)</label>
+            <input type="number" id="set-time" value="45" min="0" max="180" />
+          </div>
+          <div class="form-group">
+            <label>Pass Score (%)</label>
+            <input type="number" id="set-pass" value="60" min="0" max="100" />
+          </div>
+          <div class="form-group">
+            <label>Show Correct Answers After Submission</label>
+            <select id="set-show-ans">
+              <option value="yes">Yes — show answers</option>
+              <option value="no">No — hide answers</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ STUDENT LOGIN ══════════════ -->
+  <div id="page-student-login" class="page">
+    <nav>
+      <div class="logo">VocEd<span>Assess</span></div>
+      <button class="btn btn-outline btn-sm" onclick="showPage('page-home')">← Back</button>
+    </nav>
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:40px 16px;">
+      <div class="card" style="max-width:420px;width:100%;">
+        <h2 style="font-size:1.4rem;font-weight:800;margin-bottom:6px;">Start Your Test</h2>
+        <p style="color:var(--muted);font-size:0.88rem;margin-bottom:24px;">Enter your details to begin the assessment.</p>
+        <div id="student-login-msg" style="display:none;background:#450a0a;border:1px solid var(--red);border-radius:8px;padding:12px;margin-bottom:16px;font-size:0.88rem;color:var(--red);"></div>
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" id="stu-name" placeholder="Your full name" />
+        </div>
+        <div class="form-group">
+          <label>Roll Number</label>
+          <input type="text" id="stu-id" placeholder="e.g. 7301" maxlength="4" oninput="this.value=this.value.replace(/[^0-9]/g,'')" style="letter-spacing:4px;font-family:'DM Mono',monospace;font-size:1.1rem;" />
+          <div style="font-size:0.75rem;color:var(--muted);margin-top:6px;">⚠️ Enter your 4-digit roll number (e.g. 7301, 6024, 8012)</div>
+        </div>
+        <div class="form-group">
+          <label>Select Your Class</label>
+          <select id="stu-class" onchange="updateTopicOptions()">
+            <option value="">-- Choose Class --</option>
+            <option value="6">Class 6</option>
+            <option value="7">Class 7</option>
+            <option value="8">Class 8</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Select Your Section</label>
+          <select id="stu-section">
+            <option value="">-- Choose Section --</option>
+            <option value="A">Section A</option>
+            <option value="B">Section B</option>
+            <option value="C">Section C</option>
+            <option value="D">Section D</option>
+            <option value="E">Section E</option>
+          </select>
+        </div>
+        <div class="form-group" id="topic-group" style="display:none;">
+          <label>Select Chapter / Topic</label>
+          <select id="stu-topic">
+            <option value="">-- Choose Topic --</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" style="width:100%;margin-top:4px;" onclick="startTest()">Begin Assessment →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ STUDENT TEST ══════════════ -->
+  <div id="page-test" class="page">
+    <div class="test-header">
+      <div>
+        <div style="font-weight:700;font-size:0.95rem;" id="test-title-bar">Assessment</div>
+        <div style="font-size:0.78rem;color:var(--muted);" id="test-student-bar">Student</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:20px;">
+        <div>
+          <div style="font-size:0.72rem;color:var(--muted);text-align:center;margin-bottom:2px;">TIME LEFT</div>
+          <div class="timer" id="timer-display">45:00</div>
+        </div>
+        <button class="btn btn-green btn-sm" onclick="confirmSubmit()">Submit Test</button>
+      </div>
+    </div>
+    <div style="max-width:800px;margin:0 auto;padding:24px 16px;">
+      <div class="q-progress" id="q-progress"></div>
+      <div id="q-area"></div>
+      <div class="nav-btns" style="justify-content:space-between;margin-top:16px;">
+        <button class="btn btn-outline" onclick="prevQ()">← Previous</button>
+        <button class="btn btn-primary" onclick="nextQ()">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ STUDENT RESULT ══════════════ -->
+  <div id="page-result" class="page">
+    <nav>
+      <div class="logo">VocEd<span>Assess</span></div>
+      <button class="btn btn-outline btn-sm" onclick="showPage('page-home')">🏠 Home</button>
+    </nav>
+    <div style="max-width:700px;margin:0 auto;padding:32px 16px;">
+      <div class="result-hero">
+        <div class="score-ring">
+          <svg width="160" height="160" viewBox="0 0 160 160">
+            <circle cx="80" cy="80" r="65" fill="none" stroke="var(--border)" stroke-width="12"/>
+            <circle cx="80" cy="80" r="65" fill="none" stroke="var(--accent)" stroke-width="12"
+              stroke-dasharray="408" id="score-arc" stroke-dashoffset="408" stroke-linecap="round"
+              style="transition: stroke-dashoffset 1s ease"/>
+          </svg>
+          <div class="score-text">
+            <div class="pct" id="res-pct">0%</div>
+            <div class="lbl" id="res-grade-lbl">Grade</div>
+          </div>
+        </div>
+        <h2 style="font-size:1.6rem;font-weight:800;margin-bottom:8px;" id="res-heading">Test Complete!</h2>
+        <p style="color:var(--muted);margin-bottom:8px;" id="res-sub"></p>
+        <p style="color:var(--muted);font-size:0.85rem;" id="res-time-taken"></p>
+      </div>
+
+      <!-- GRADE STATS CARDS -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;" id="res-stat-cards">
+        <div class="stat-card" style="text-align:center;">
+          <div style="font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Grade</div>
+          <div id="res-grade-card" style="font-size:2rem;font-weight:800;">—</div>
+        </div>
+        <div class="stat-card" style="text-align:center;">
+          <div style="font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Score</div>
+          <div id="res-score-card" style="font-size:2rem;font-weight:800;color:var(--accent);">—</div>
+        </div>
+        <div class="stat-card" style="text-align:center;">
+          <div style="font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Correct</div>
+          <div id="res-correct-card" style="font-size:2rem;font-weight:800;color:var(--green);">—</div>
+        </div>
+        <div class="stat-card" style="text-align:center;">
+          <div style="font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Wrong</div>
+          <div id="res-wrong-card" style="font-size:2rem;font-weight:800;color:var(--red);">—</div>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:20px;">
+        <h3 style="font-size:1rem;font-weight:700;margin-bottom:16px;">📋 Question Breakdown</h3>
+        <div class="breakdown-list" id="breakdown-list"></div>
+      </div>
+      <div style="text-align:center;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+        <button class="btn btn-outline" onclick="showPage('page-home')">🏠 Return Home</button>
+        <button class="btn btn-primary" onclick="showPage('page-student-login')">🔄 Take Another Test</button>
+      </div>
+
+      <!-- GOOGLE SHEET SAVE STATUS -->
+      <div id="sheet-save-box" style="margin-top:24px;border-radius:var(--radius);padding:20px 24px;text-align:center;border:2px solid var(--border);">
+        <div id="sheet-save-inner">
+          <div class="loader" style="justify-content:center;margin-bottom:10px;"><span></span><span></span><span></span></div>
+          <div style="font-size:0.9rem;color:var(--muted);font-weight:600;">📊 Result Google Sheet mein save ho raha hai…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ RESULT DETAIL MODAL ══════════════ -->
+  <div id="modal-detail" class="modal-bg">
+    <div class="modal" style="max-width:600px;max-height:80vh;overflow-y:auto;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <h3 id="modal-student-name">Student Result</h3>
+        <button class="btn btn-outline btn-sm" onclick="closeModal()">✕ Close</button>
+      </div>
+      <div id="modal-content"></div>
+    </div>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════
+let questions = [];
+let results = [];
+let settings = { title: 'Vocational Education Assessment', timeLimit: 45, passScore: 60, showAnswers: 'yes' };
+let currentStudent = { name: '', id: '' };
+let testAnswers = {};
+let currentQ = 0;
+let timerInterval = null;
+let timerSeconds = 0;
+let testStartTime = null;
+
+// ═══════════════════════════════════════════════════════
+//  STORAGE — localStorage for questions/settings (teacher device)
+//            Google Apps Script for student results (cross-device)
+// ═══════════════════════════════════════════════════════
+
+// Paste your Google Apps Script Web App URL here after setup:
+let GAS_URL = localStorage.getItem('voced-gas-url') || 'https://script.google.com/macros/s/AKfycbzC1oa8tpFLz35bAb0vUqIX3pVc-BzQgqynlvGOcw5DTi-VZNexa81oZJSTlmp92DTohQ/exec';
+
+function saveLocal() {
+  try {
+    localStorage.setItem('voced-questions', JSON.stringify(questions));
+    localStorage.setItem('voced-settings',  JSON.stringify(settings));
+    localStorage.setItem('voced-results',   JSON.stringify(results));
+  } catch(e) {}
+}
+
+function loadLocal() {
+  try { const q = localStorage.getItem('voced-questions'); if(q) questions = JSON.parse(q); } catch(e){}
+  try { const s = localStorage.getItem('voced-settings');  if(s) settings  = {...settings,...JSON.parse(s)}; } catch(e){}
+  try { const r = localStorage.getItem('voced-results');   if(r) results   = JSON.parse(r); } catch(e){}
+}
+
+// Save one student result to Google Sheet via Apps Script
+async function saveResultToSheet(result) {
+  const box   = document.getElementById('sheet-save-box');
+  const inner = document.getElementById('sheet-save-inner');
+
+  function setBox(bg, border, html) {
+    if (box) box.style.cssText = `margin-top:24px;border-radius:var(--radius);padding:20px 24px;text-align:center;border:2px solid ${border};background:${bg};`;
+    if (inner) inner.innerHTML = html;
+  }
+
+  if (!GAS_URL) {
+    setBox('#422006','var(--yellow)',
+      '<div style="font-size:1.4rem;margin-bottom:8px;">⚠️</div>' +
+      '<div style="font-size:0.9rem;color:var(--yellow);font-weight:700;">Google Sheet URL set nahi hai!</div>' +
+      '<div style="font-size:0.82rem;color:var(--muted);margin-top:6px;">Teacher Portal → Settings mein jaake Apps Script URL paste karo.</div>');
+    return;
+  }
+
+  // Show saving spinner
+  setBox('var(--surface)','var(--border)',
+    '<div class="loader" style="justify-content:center;margin-bottom:10px;"><span></span><span></span><span></span></div>' +
+    '<div style="font-size:0.9rem;color:var(--muted);font-weight:600;">📊 Result Google Sheet mein save ho raha hai…</div>');
+
+  const grade  = result.pct>=90?'A':result.pct>=80?'B':result.pct>=70?'C':result.pct>=60?'D':'F';
+  const passed = result.pct >= (settings.passScore||60) ? 'Pass' : 'Fail';
+  const mins   = (result.timeTaken/60).toFixed(1);
+
+  const params = new URLSearchParams({
+    action:'saveResult',
+    date:   new Date(result.date).toLocaleString(),
+    name:   result.studentName,
+    roll:   result.studentId,
+    cls:    'Class ' + (result.studentClass||''),
+    section:'Section ' + (result.section||''),
+    topic:  result.topic||'',
+    score:  result.score,
+    total:  result.total,
+    pct:    result.pct + '%',
+    grade:  grade,
+    result: passed,
+    time:   mins
+  });
+
+  // Strategy 1: fetch with no-cors (works on most phones)
+  // Strategy 2: Image ping fallback (works even when fetch is blocked)
+  let saved = false;
+
+  try {
+    await fetch(GAS_URL + '?' + params.toString(), { method:'GET', mode:'no-cors' });
+    saved = true;
+  } catch(e1) {
+    // Fallback: image ping — no CORS issues at all
+    try {
+      await new Promise((resolve) => {
+        const img = new Image();
+        img.onload = img.onerror = () => resolve();
+        img.src = GAS_URL + '?' + params.toString() + '&_t=' + Date.now();
+        setTimeout(resolve, 8000); // 8s timeout
+      });
+      saved = true;
+    } catch(e2) { saved = false; }
+  }
+
+  if (saved) {
+    setBox('#0d2818','var(--green)',
+      '<div style="font-size:2rem;margin-bottom:8px;">✅</div>' +
+      '<div style="font-size:1rem;color:var(--green);font-weight:800;">Result Google Sheet mein Save Ho Gaya!</div>' +
+      '<div style="font-size:0.83rem;color:var(--muted);margin-top:8px;">Teacher apni sheet mein dekh sakte hain.</div>');
+  } else {
+    setBox('#450a0a','var(--red)',
+      '<div style="font-size:2rem;margin-bottom:8px;">❌</div>' +
+      '<div style="font-size:0.9rem;color:var(--red);font-weight:700;">Sheet mein save nahi hua</div>' +
+      '<div style="font-size:0.82rem;color:var(--muted);margin-top:6px;">Internet check karo ya teacher se Apps Script URL verify karwao.</div>');
+  }
+}
+
+// Load all results from Google Sheet — teacher ke liye
+async function loadResultsFromSheet() {
+  if (!GAS_URL) return;
+  try {
+    showToast('⏳ Google Sheet se results load ho rahe hain...');
+    const res  = await fetch(GAS_URL + '?action=getResults', { mode: 'cors' });
+    const data = await res.json();
+    if (Array.isArray(data) && data.length > 0) {
+      // Convert sheet rows to result objects
+      // Columns: Name, Roll, Class, Section, Topic, Score, Total, Pct, Grade, Result, Date, Time
+      results = data.map(row => ({
+        studentName:  String(row[0] || ''),
+        studentId:    String(row[1] || ''),
+        studentClass: String(row[2] || '').replace('Class ',''),
+        section:      String(row[3] || '').replace('Section ',''),
+        topic:        String(row[4] || ''),
+        score:        parseInt(row[5]) || 0,
+        total:        parseInt(row[6]) || 30,
+        pct:          parseInt(String(row[7]||'0').replace('%','')) || 0,
+        date:         String(row[10] || new Date().toISOString()),
+        timeTaken:    parseFloat(row[11]||0)*60,
+        breakdown:    []
+      }));
+      saveLocal();
+      renderResults();
+      refreshTeacher();
+      showToast('✅ ' + results.length + ' results load ho gaye!');
+    } else {
+      showToast('📋 Abhi tak koi result nahi aaya.');
+    }
+  } catch(e) {
+    showToast('❌ Sheet se load nahi hua. Apps Script check karo.');
+  }
+}
+
+function saveData() { saveLocal(); }
+function loadData()  { loadLocal(); }
+
+
+// ═══════════════════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════════════════
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (id === 'page-teacher') refreshTeacher();
+}
+
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (id === 'tab-questions') renderQBank();
+  if (id === 'tab-results') renderResults();
+  if (id === 'tab-settings') loadSettingsForm();
+}
+
+// ═══════════════════════════════════════════════════════
+//  TEACHER LOGIN
+// ═══════════════════════════════════════════════════════
+function teacherLogin() {
+  const u = document.getElementById('teacher-user').value.trim();
+  const p = document.getElementById('teacher-pass').value.trim();
+  if (u === 'Abhishek1122' && p === 'Qwerty@1122') {
+    showPage('page-teacher');
+  } else {
+    showToast('❌ Invalid credentials. Try teacher / admin123');
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  BUILT-IN QUESTION BANK (works offline & on Netlify)
+// ═══════════════════════════════════════════════════════
+const QUESTION_BANK = {
+
+  // ── NCERT KAUSHAL BODH GRADE 6 ──
+  "school kitchen garden": [
+    {type:"mcq",question:"What is another name for a kitchen garden?",options:["A. Flower garden","B. Vegetable garden","C. Rock garden","D. Water garden"],answer:"B"},
+    {type:"mcq",question:"Which tool is used for digging up soil and planting seedlings in a kitchen garden?",options:["A. Gardening shears","B. Spray bottle","C. Garden trowel","D. Hand cultivator"],answer:"C"},
+    {type:"mcq",question:"What is the main use of a hand cultivator in gardening?",options:["A. Watering plants","B. Cutting branches","C. Loosening soil, removing weeds and mixing manure","D. Spraying pesticide"],answer:"C"},
+    {type:"mcq",question:"What are gardening gloves made of as mentioned in the Kaushal Bodh book?",options:["A. Cotton","B. Leather","C. Rubber","D. Plastic"],answer:"C"},
+    {type:"mcq",question:"What is organic mulching material used for?",options:["A. To add colour to plants","B. To retain moisture and suppress growth of weeds","C. To kill insects","D. To provide nutrients directly to roots"],answer:"B"},
+    {type:"mcq",question:"Which material is used to prepare organic pesticide as described in Project 1?",options:["A. Garlic and water","B. Neem leaves and a jerry can/large bottle","C. Chilli powder and vinegar","D. Soap water and salt"],answer:"B"},
+    {type:"mcq",question:"What is vermicompost made from?",options:["A. Chemical fertilisers and water","B. Organic waste broken down by earthworms","C. Sand and gravel mixed with soil","D. Dried animal bones"],answer:"B"},
+    {type:"mcq",question:"Which earthworm species is used for making vermicompost in Project 1?",options:["A. Lumbricus terrestris","B. Eisenia fetida (Red earthworm)","C. Nightcrawler","D. Common garden worm"],answer:"B"},
+    {type:"mcq",question:"What should you NOT add to a vermicompost bin?",options:["A. Vegetable peelings","B. Fruit scraps","C. Eggshells","D. Meat, dairy and oily foods"],answer:"D"},
+    {type:"mcq",question:"How do you know vermicompost is ready to use?",options:["A. It turns bright yellow","B. It becomes dark, crumbly and earthy smelling","C. It becomes white and powdery","D. It starts producing heat"],answer:"B"},
+    {type:"mcq",question:"What is a spade used for in a kitchen garden?",options:["A. Spraying water on plants","B. Cutting stems","C. Digging, edging and moving soil","D. Measuring plant height"],answer:"C"},
+    {type:"mcq",question:"Which of the following is an organic fertiliser mentioned in the book?",options:["A. Urea","B. Superphosphate","C. Manure and compost","D. Chemical nitrogen"],answer:"C"},
+    {type:"mcq",question:"What are plant labels used for in a kitchen garden?",options:["A. To tie plants together","B. To identify different plants in the garden","C. To measure soil depth","D. To mark watering times"],answer:"B"},
+    {type:"mcq",question:"What factors should be considered when choosing a location for a kitchen garden?",options:["A. Only the size of the area","B. Sunlight exposure, drainage and spacing requirements","C. Only the colour of the soil","D. Distance from the school gate"],answer:"B"},
+    {type:"mcq",question:"What is a potting mix made of according to the book?",options:["A. Only sand and gravel","B. A blend of compost, perlite, vermiculite, soil, coir or peat-moss","C. Just plain soil","D. Fertiliser and water"],answer:"B"},
+    {type:"mcq",question:"Which ancient Indian text deals with the science of plant life and agriculture?",options:["A. Arthashastra","B. Vrikshayurveda","C. Charaka Samhita","D. Rigveda"],answer:"B"},
+    {type:"mcq",question:"Who wrote the Vrikshayurveda text around 1000 CE?",options:["A. Chanakya","B. Charaka","C. Surapala","D. Salihotra"],answer:"C"},
+    {type:"mcq",question:"What nutrients do plants absorb from soil for their growth?",options:["A. Oxygen, hydrogen and carbon","B. Nitrogen, phosphorus and potash","C. Iron, copper and zinc","D. Salt, sugar and starch"],answer:"B"},
+    {type:"mcq",question:"What is manure prepared from?",options:["A. Chemical compounds","B. Dung of farm animals","C. Dried leaves only","D. Kitchen waste only"],answer:"B"},
+    {type:"mcq",question:"Which vegetables are mentioned in the book as suitable for a kitchen garden?",options:["A. Potato and onion only","B. Brinjal, cucumber, chilli, coriander and mint","C. Only rice and wheat","D. Only flowers"],answer:"B"},
+    {type:"truefalse",question:"A kitchen garden is also known as a vegetable garden.",answer:"True"},
+    {type:"truefalse",question:"Gardening gloves are used only for decoration and have no safety purpose.",answer:"False"},
+    {type:"truefalse",question:"Organic mulching helps retain moisture and suppress weeds in a kitchen garden.",answer:"True"},
+    {type:"truefalse",question:"Meat and dairy products should be added to the vermicompost bin.",answer:"False"},
+    {type:"truefalse",question:"Vermicompost is ready when it becomes dark, crumbly and earthy smelling.",answer:"True"},
+    {type:"truefalse",question:"Tools should be stored in a disorganised manner after use.",answer:"False"},
+    {type:"truefalse",question:"Neem leaves can be used to prepare organic pesticide.",answer:"True"},
+    {type:"truefalse",question:"Nitrogen, phosphorus and potash are important nutrients for plant growth.",answer:"True"},
+    {type:"truefalse",question:"If a pot is too heavy, you should try to lift it alone without asking for help.",answer:"False"},
+    {type:"truefalse",question:"The Vrikshayurveda by Surapala deals with cultivation of plants and soil conservation.",answer:"True"},
+  ],
+
+  "biodiversity register": [
+    {type:"mcq",question:"What is biodiversity?",options:["A. The variety of machines in a factory","B. The variety of living things in a particular area","C. The variety of foods in a restaurant","D. The variety of books in a library"],answer:"B"},
+    {type:"mcq",question:"What is the main purpose of making a biodiversity register?",options:["A. To sell plants and animals","B. To document and study different species of plants, animals and insects","C. To draw pictures of animals for art class","D. To collect animals from the wild"],answer:"B"},
+    {type:"mcq",question:"Which of the following is NOT a living thing?",options:["A. A plant","B. An insect","C. A stone","D. A bird"],answer:"C"},
+    {type:"mcq",question:"What skill does the biodiversity register project help develop?",options:["A. Cooking skills","B. Swimming skills","C. Observational skills and knowledge of biodiversity","D. Mathematical calculation skills"],answer:"C"},
+    {type:"mcq",question:"Why is conservation of biodiversity important?",options:["A. To make money from selling species","B. To protect natural habitats and balance of ecosystems","C. To remove all insects from the environment","D. To plant only useful crops"],answer:"B"},
+    {type:"mcq",question:"What does an ecosystem include?",options:["A. Only plants","B. Only animals","C. Living things and their physical environment interacting together","D. Only water bodies"],answer:"C"},
+    {type:"mcq",question:"Which of the following is an example of a Life Form?",options:["A. A bicycle","B. A computer","C. A butterfly","D. A building"],answer:"C"},
+    {type:"mcq",question:"What does 'documentation' of species mean?",options:["A. Eating different species","B. Recording and keeping information about different species","C. Destroying habitats","D. Collecting and selling specimens"],answer:"B"},
+    {type:"mcq",question:"What should students do while observing plants and animals for a biodiversity register?",options:["A. Disturb and chase them","B. Observe carefully and note down their features","C. Pick all the flowers","D. Catch all the insects they find"],answer:"B"},
+    {type:"mcq",question:"Which of the following helps protect biodiversity?",options:["A. Cutting all forests","B. Polluting rivers","C. Protecting natural habitats and practising conservation","D. Using more pesticides"],answer:"C"},
+    {type:"mcq",question:"What does 'species' mean?",options:["A. A type of spice used in cooking","B. A group of living things that share common characteristics","C. A special kind of tool","D. A scientific laboratory"],answer:"B"},
+    {type:"mcq",question:"Why should students visit the school premises or nearby areas for the biodiversity project?",options:["A. To play games","B. To observe and document the variety of living things present there","C. To collect materials for art","D. To measure the area of the school"],answer:"B"},
+    {type:"mcq",question:"What is a habitat?",options:["A. A bad habit","B. The natural home or environment of a living thing","C. A type of food","D. A garden tool"],answer:"B"},
+    {type:"mcq",question:"Which of these is part of the biodiversity found in a school garden?",options:["A. Computers and tablets","B. Desks and chairs","C. Plants, insects and birds","D. Books and pencils"],answer:"C"},
+    {type:"mcq",question:"What is environmental stewardship?",options:["A. Destroying the environment for profit","B. Ignoring environmental problems","C. Taking responsibility to protect and care for the environment","D. Only planting ornamental flowers"],answer:"C"},
+    {type:"mcq",question:"What is the role of insects like bees in an ecosystem?",options:["A. They have no important role","B. They help in pollination of plants","C. They only cause harm to plants","D. They produce fruits directly"],answer:"B"},
+    {type:"mcq",question:"Bacteria and viruses are examples of which category of life forms?",options:["A. Machines","B. Materials","C. Microorganisms — a type of life form","D. Non-living things"],answer:"C"},
+    {type:"mcq",question:"What does 'conservation' mean in the context of biodiversity?",options:["A. Collecting rare animals as pets","B. Protecting species and their habitats from harm","C. Removing all wild plants from cities","D. Selling plants to raise money"],answer:"B"},
+    {type:"truefalse",question:"A biodiversity register documents the variety of living things in an area.",answer:"True"},
+    {type:"truefalse",question:"Stones and rocks are living things and should be included in a biodiversity register.",answer:"False"},
+    {type:"truefalse",question:"Insects play an important role in ecosystems and should be studied in the biodiversity project.",answer:"True"},
+    {type:"truefalse",question:"Biodiversity is only about counting how many trees are in a forest.",answer:"False"},
+    {type:"truefalse",question:"Observing plants and animals carefully helps you learn about their role in the ecosystem.",answer:"True"},
+    {type:"truefalse",question:"It is safe to disturb bird nests while doing the biodiversity project.",answer:"False"},
+    {type:"truefalse",question:"Protecting natural habitats helps maintain biodiversity.",answer:"True"},
+    {type:"truefalse",question:"All insects found in a school garden are harmful and should be killed.",answer:"False"},
+    {type:"truefalse",question:"A habitat is the natural home or environment of a living organism.",answer:"True"},
+    {type:"truefalse",question:"Climate change has no impact on biodiversity.",answer:"False"},
+    {type:"truefalse",question:"Recording and documenting species is an important part of the biodiversity register project.",answer:"True"},
+    {type:"truefalse",question:"Bacteria and viruses are also considered life forms.",answer:"True"},
+  ],
+
+  "maker skills": [
+    {type:"mcq",question:"What is the main focus of the Maker Skills project in Kaushal Bodh Grade 6?",options:["A. Reading books about machines","B. Hands-on activities like making toys and maintaining a bicycle","C. Drawing diagrams of machines","D. Writing essays about technology"],answer:"B"},
+    {type:"mcq",question:"Which of the following is an example of work with machines and materials?",options:["A. Growing vegetables","B. Studying animals","C. Making a toy using tools and materials","D. Cooking without fire"],answer:"C"},
+    {type:"mcq",question:"What does the Maker Skills project help develop?",options:["A. Only drawing skills","B. Creativity, problem-solving and technical skills","C. Only reading and writing skills","D. Only memory skills"],answer:"B"},
+    {type:"mcq",question:"Which of the following is a basic tool used in Maker Skills activities?",options:["A. A watering can","B. A hammer or screwdriver","C. A cooking pot","D. A microscope"],answer:"B"},
+    {type:"mcq",question:"What should you do before using any tool in the Maker Skills project?",options:["A. Use it without any instructions","B. Learn the correct and safe way to use it","C. Hide it from your teacher","D. Use it as fast as possible"],answer:"B"},
+    {type:"mcq",question:"What is the benefit of making your own toys using tools and materials?",options:["A. It wastes time and materials","B. It develops creativity and practical skills","C. It is only useful for engineers","D. It has no educational value"],answer:"B"},
+    {type:"mcq",question:"Why is it important to maintain a bicycle?",options:["A. To make it look colourful","B. To ensure it works safely and efficiently","C. It is not necessary to maintain it","D. To show it to friends"],answer:"B"},
+    {type:"mcq",question:"Which subject areas does the Maker Skills project connect with?",options:["A. Only art","B. Only mathematics","C. Science, mathematics and design — multiple subjects","D. Only languages"],answer:"C"},
+    {type:"mcq",question:"What is the purpose of using a screwdriver?",options:["A. To cut materials","B. To drive or remove screws","C. To measure length","D. To draw straight lines"],answer:"B"},
+    {type:"mcq",question:"What should you do if you are unsure how to use a tool safely?",options:["A. Try it on your own without help","B. Ask your teacher or an expert for guidance","C. Ignore the tool","D. Use another tool instead without asking"],answer:"B"},
+    {type:"mcq",question:"Which of the following is an example of a simple machine?",options:["A. A pencil","B. A notebook","C. A ramp or a lever","D. An eraser"],answer:"C"},
+    {type:"mcq",question:"What does 'design' mean in the context of Maker Skills?",options:["A. Only drawing pretty pictures","B. Planning and creating something to solve a problem or meet a need","C. Copying someone else's work","D. Buying a product from a shop"],answer:"B"},
+    {type:"mcq",question:"What value does the Maker Skills project help students develop?",options:["A. Laziness and dependence on others","B. Innovation, critical thinking and respect for manual work","C. Avoiding teamwork","D. Completing work as quickly as possible without care"],answer:"B"},
+    {type:"mcq",question:"Which safety precaution is most important when using sharp tools?",options:["A. Work as fast as possible","B. Handle them carefully and always cut away from your body","C. Share tools without checking if they are safe","D. Use them without supervision"],answer:"B"},
+    {type:"mcq",question:"What does 'maintenance' of a bicycle include?",options:["A. Only painting it","B. Checking tyres, brakes, chain and cleaning it regularly","C. Only riding it","D. Only buying new parts"],answer:"B"},
+    {type:"mcq",question:"What career areas could the Maker Skills project prepare students for?",options:["A. Only sports","B. Design, engineering and manufacturing","C. Only cooking","D. Only teaching"],answer:"B"},
+    {type:"mcq",question:"What does the word 'functional' mean when describing a made item?",options:["A. It looks beautiful only","B. It works properly and serves its purpose","C. It is made of expensive materials","D. It cannot be used"],answer:"B"},
+    {type:"mcq",question:"What is the correct first step when starting any making or craft activity?",options:["A. Start cutting materials immediately","B. Understand the task, gather materials and plan the steps","C. Skip planning and start directly","D. Ask someone else to do it for you"],answer:"B"},
+    {type:"truefalse",question:"The Maker Skills project involves hands-on activities with tools and materials.",answer:"True"},
+    {type:"truefalse",question:"You do not need to follow any safety rules when using tools in the Maker Skills project.",answer:"False"},
+    {type:"truefalse",question:"Making toys using tools helps develop creativity and problem-solving skills.",answer:"True"},
+    {type:"truefalse",question:"A hammer is a tool used for driving nails into materials.",answer:"True"},
+    {type:"truefalse",question:"It is safe to use sharp tools without any supervision or guidance.",answer:"False"},
+    {type:"truefalse",question:"Maintaining a bicycle helps keep it in safe and working condition.",answer:"True"},
+    {type:"truefalse",question:"The Maker Skills project only develops art skills and no other abilities.",answer:"False"},
+    {type:"truefalse",question:"Simple machines like levers and ramps help make work easier.",answer:"True"},
+    {type:"truefalse",question:"Students should plan their work before starting any making activity.",answer:"True"},
+    {type:"truefalse",question:"Tools should be kept in a safe and organised manner after use.",answer:"True"},
+    {type:"truefalse",question:"The Maker Skills project has no connection to real-world careers.",answer:"False"},
+    {type:"truefalse",question:"Creativity and innovation are important skills developed through Maker Skills activities.",answer:"True"},
+  ],
+
+  "animation and games": [
+    {type:"mcq",question:"What does the Animation and Games project introduce students to?",options:["A. Traditional painting","B. Fundamentals of digital creativity — coding, graphic design and storytelling","C. Physical sports and games","D. Writing stories in notebooks"],answer:"B"},
+    {type:"mcq",question:"What does AI stand for as mentioned in the Kaushal Bodh book?",options:["A. Advanced Internet","B. Artificial Intelligence","C. Animated Images","D. Automatic Input"],answer:"B"},
+    {type:"mcq",question:"Which of the following is an example of an AI tool mentioned in the book?",options:["A. A hammer","B. A watering can","C. ChatGPT","D. A compass"],answer:"C"},
+    {type:"mcq",question:"What skill does the Animation and Games project help develop?",options:["A. Only drawing on paper","B. Coding, graphic design, and logical thinking","C. Only reading skills","D. Only writing stories"],answer:"B"},
+    {type:"mcq",question:"What does animation mean?",options:["A. Writing computer programs","B. Creating moving images or bringing images to life through a sequence of frames","C. Repairing computers","D. Taking photographs"],answer:"B"},
+    {type:"mcq",question:"Why is internet safety important for students?",options:["A. To prevent them from using computers","B. To protect personal information and avoid unsafe websites","C. The internet is always safe for everyone","D. Only adults need to follow internet safety rules"],answer:"B"},
+    {type:"mcq",question:"What is coding?",options:["A. Writing secret messages","B. Writing instructions for computers to perform tasks","C. Designing clothes","D. Painting digital pictures only"],answer:"B"},
+    {type:"mcq",question:"What should students do before accessing the internet for school projects?",options:["A. Access any website freely without supervision","B. Work under supervision of an adult and avoid unsafe sites","C. Share their passwords with friends","D. Download all available files"],answer:"B"},
+    {type:"mcq",question:"What does 'graphic design' involve?",options:["A. Only writing text","B. Creating visual content using images, colours and layouts","C. Repairing electronic devices","D. Only building physical objects"],answer:"B"},
+    {type:"mcq",question:"What does the Animation and Games project encourage in students?",options:["A. Copying existing games without creativity","B. Technological proficiency, creativity and logical thinking","C. Avoiding the use of technology","D. Only playing existing video games"],answer:"B"},
+    {type:"mcq",question:"What is storytelling in the context of digital creativity?",options:["A. Only oral stories told in class","B. Creating a sequence of events or narrative in an animation or game","C. Reading stories from a textbook","D. Writing only in a notebook"],answer:"B"},
+    {type:"mcq",question:"Which of the following is good internet safety behaviour?",options:["A. Sharing your password with friends","B. Visiting any website without checking","C. Not sharing personal information and using the internet with adult supervision","D. Downloading all files you find interesting"],answer:"C"},
+    {type:"mcq",question:"What does 'logical thinking' mean in programming and games?",options:["A. Guessing answers randomly","B. Thinking in a step-by-step, organised way to solve problems","C. Memorising all answers","D. Copying work from others"],answer:"B"},
+    {type:"mcq",question:"What is the benefit of learning to design games?",options:["A. It has no educational value","B. It develops problem-solving, creativity and understanding of technology","C. It only helps in playing games better","D. It is only useful for professional programmers"],answer:"B"},
+    {type:"mcq",question:"What does 'digital creativity' mean?",options:["A. Using digital tools to express ideas, make art or design products","B. Only using a computer for watching videos","C. Repairing digital devices","D. Only learning to type faster"],answer:"A"},
+    {type:"mcq",question:"Why is it important NOT to share personal information on the internet?",options:["A. Because it takes too much time","B. Because it can be misused and put you at risk","C. Because the internet is too slow","D. Because your teacher might see it"],answer:"B"},
+    {type:"mcq",question:"What type of work does the Animation and Games project belong to in Kaushal Bodh?",options:["A. Work with Life Forms","B. Work in Human Services","C. Work with Machines and Materials","D. Work with Animals"],answer:"C"},
+    {type:"mcq",question:"What is a QR code as mentioned in the Kaushal Bodh book?",options:["A. A type of question in the book","B. A Quick Response code that gives access to additional resources","C. A type of computer programme","D. A safety sign in the workshop"],answer:"B"},
+    {type:"truefalse",question:"The Animation and Games project helps students learn coding and graphic design.",answer:"True"},
+    {type:"truefalse",question:"Students can share their personal passwords with friends while using the internet.",answer:"False"},
+    {type:"truefalse",question:"AI stands for Artificial Intelligence.",answer:"True"},
+    {type:"truefalse",question:"Animation involves creating moving images through a sequence of frames.",answer:"True"},
+    {type:"truefalse",question:"Internet safety rules apply only to adults, not to students.",answer:"False"},
+    {type:"truefalse",question:"Coding means writing instructions that tell computers what to do.",answer:"True"},
+    {type:"truefalse",question:"The Animation and Games project is an example of Work with Machines and Materials.",answer:"True"},
+    {type:"truefalse",question:"Students do not need adult supervision when using the internet for school projects.",answer:"False"},
+    {type:"truefalse",question:"Digital creativity involves using technology to create and design things.",answer:"True"},
+    {type:"truefalse",question:"Logical thinking is an important skill in designing games and animations.",answer:"True"},
+    {type:"truefalse",question:"ChatGPT is mentioned in the book as an example of an AI tool.",answer:"True"},
+    {type:"truefalse",question:"It is safe to download anything from the internet without checking.",answer:"False"},
+  ],
+
+  "school museum": [
+    {type:"mcq",question:"What is the main purpose of the School Museum project?",options:["A. To collect and sell old items","B. To create and manage exhibits showcasing history, culture and community achievements","C. To build a new school building","D. To store broken furniture"],answer:"B"},
+    {type:"mcq",question:"What skills does the School Museum project help develop?",options:["A. Only cooking skills","B. Research, documentation and presentation skills","C. Only sports skills","D. Only drawing skills"],answer:"B"},
+    {type:"mcq",question:"Which form of work does the School Museum project belong to?",options:["A. Work with Life Forms","B. Work with Machines and Materials","C. Work in Human Services","D. Work with Animals"],answer:"C"},
+    {type:"mcq",question:"What does an exhibit in a museum show?",options:["A. Items that are for sale","B. Items or displays that help visitors learn about history, culture or achievements","C. Items that are broken and useless","D. Items that belong only to teachers"],answer:"B"},
+    {type:"mcq",question:"Why is it important to learn about your family and community heritage?",options:["A. It has no value","B. It helps you understand your roots, culture and history","C. It is only useful for history teachers","D. It helps you get good marks in maths"],answer:"B"},
+    {type:"mcq",question:"What is documentation?",options:["A. Writing random stories","B. Recording and organising information in a systematic way","C. Destroying old records","D. Only making videos"],answer:"B"},
+    {type:"mcq",question:"What does 'heritage' mean?",options:["A. Modern technology and gadgets","B. Traditions, history and cultural practices passed down through generations","C. The school timetable","D. A type of food"],answer:"B"},
+    {type:"mcq",question:"What teamwork skill does the School Museum project promote?",options:["A. Working alone on all tasks","B. Collaborating with peers to plan, create and present exhibits","C. Competing with classmates","D. Copying others' work"],answer:"B"},
+    {type:"mcq",question:"How can students gather information for the school museum?",options:["A. Only from textbooks","B. By researching, interviewing family and community members, and using the internet safely","C. By making up stories","D. By copying from other museums"],answer:"B"},
+    {type:"mcq",question:"What is the benefit of having a museum in a school?",options:["A. It takes up useful space","B. It helps students learn about and appreciate history, culture and their community","C. It has no educational value","D. It is only useful for older students"],answer:"B"},
+    {type:"mcq",question:"What is a portfolio in the context of Kaushal Bodh projects?",options:["A. A type of bag for carrying tools","B. A collection of a student's work, notes, photographs and reflections from projects","C. A school timetable","D. A list of materials needed for a project"],answer:"B"},
+    {type:"mcq",question:"What does 'presentation' mean in the context of the school museum?",options:["A. Giving a gift to someone","B. Showing and explaining your work or exhibits clearly to others","C. Reading silently from a book","D. Writing an exam"],answer:"B"},
+    {type:"mcq",question:"What kind of objects might be displayed in a school museum?",options:["A. New smartphones and laptops","B. Photographs, tools, handicrafts and items representing local culture and history","C. Only science equipment","D. Only sports trophies"],answer:"B"},
+    {type:"mcq",question:"What value does the School Museum project help develop?",options:["A. Disrespect for old traditions","B. Appreciation for heritage, organisational skills and teamwork","C. Avoiding communication with the community","D. Working only for personal gain"],answer:"B"},
+    {type:"mcq",question:"Why is it important to involve the community in a school museum project?",options:["A. It is not important","B. Community members can share knowledge, stories and objects that enrich the museum","C. Only teachers should be involved","D. Community involvement wastes time"],answer:"B"},
+    {type:"mcq",question:"What is the connection between the School Museum project and Human Services?",options:["A. It involves growing plants","B. It involves interacting with people to understand and preserve community heritage","C. It involves repairing machines","D. It involves cooking food"],answer:"B"},
+    {type:"mcq",question:"What is 'oral history'?",options:["A. History taught only from textbooks","B. Stories and knowledge shared verbally by people from the community","C. History studied only in museums","D. History written in ancient books"],answer:"B"},
+    {type:"mcq",question:"What is the suggested assessment weightage for practical work in Kaushal Bodh projects?",options:["A. 20% practical and 80% theory","B. 50% practical and 50% theory","C. 80% practical and 20% theory","D. 100% practical and 0% theory"],answer:"C"},
+    {type:"truefalse",question:"The School Museum project is an example of Work in Human Services.",answer:"True"},
+    {type:"truefalse",question:"A school museum helps students learn about history and their community's culture.",answer:"True"},
+    {type:"truefalse",question:"Documentation means destroying old records and items.",answer:"False"},
+    {type:"truefalse",question:"Students can involve their family and community members in the School Museum project.",answer:"True"},
+    {type:"truefalse",question:"Heritage refers only to modern technology and gadgets.",answer:"False"},
+    {type:"truefalse",question:"Teamwork and collaboration are important in the School Museum project.",answer:"True"},
+    {type:"truefalse",question:"A portfolio contains only the teacher's notes and not the student's work.",answer:"False"},
+    {type:"truefalse",question:"Oral history refers to knowledge and stories shared verbally by community members.",answer:"True"},
+    {type:"truefalse",question:"The School Museum project only involves making drawings and has no research component.",answer:"False"},
+    {type:"truefalse",question:"Appreciating heritage and culture is one of the values developed in the School Museum project.",answer:"True"},
+    {type:"truefalse",question:"Students should maintain a portfolio to record their progress in Vocational Education projects.",answer:"True"},
+    {type:"truefalse",question:"The practical component of Kaushal Bodh projects carries more weightage than the written test.",answer:"True"},
+  ],
+
+  "cooking without fire": [
+    {type:"mcq",question:"What is the main focus of the Cooking without Fire project?",options:["A. Cooking using a gas stove","B. Preparing nutritious meals without using heat or fire","C. Baking cakes in an oven","D. Learning to use a microwave"],answer:"B"},
+    {type:"mcq",question:"What does the Cooking without Fire project teach students about?",options:["A. Only how to use kitchen machines","B. Nutrition, food safety, and culinary creativity","C. Only how to clean a kitchen","D. How to set up a restaurant"],answer:"B"},
+    {type:"mcq",question:"Which form of work does the Cooking without Fire project belong to?",options:["A. Work with Life Forms","B. Work with Machines and Materials","C. Work in Human Services","D. Work with Animals"],answer:"C"},
+    {type:"mcq",question:"Why is it important to learn to cook without fire?",options:["A. It has no practical use","B. It teaches practical life skills, healthy eating and prepares for emergencies with limited resources","C. It is only for professional chefs","D. It is only useful in summer"],answer:"B"},
+    {type:"mcq",question:"What is food safety?",options:["A. Keeping food in a locked cabinet","B. Practices that prevent food from becoming contaminated or unsafe to eat","C. Cooking food at very high temperatures only","D. Only washing fruits and vegetables"],answer:"B"},
+    {type:"mcq",question:"Which of the following is an example of a food that can be prepared without fire?",options:["A. Fried chicken","B. Baked bread","C. Fresh fruit salad or chaat","D. Boiled rice"],answer:"C"},
+    {type:"mcq",question:"What is nutrition?",options:["A. The process of cooking food","B. The process by which the body gets the nutrients it needs from food for health and growth","C. A type of exercise","D. A way of storing food"],answer:"B"},
+    {type:"mcq",question:"Which food group provides vitamins and minerals important for health?",options:["A. Oils and fats","B. Sugar and sweets","C. Fruits and vegetables","D. Packaged snacks"],answer:"C"},
+    {type:"mcq",question:"What should you do before handling food in the kitchen?",options:["A. Nothing special is required","B. Wash your hands thoroughly with soap and water","C. Only wipe your hands on your clothes","D. Use gloves without washing hands"],answer:"B"},
+    {type:"mcq",question:"Why is teamwork important in the Cooking without Fire project?",options:["A. It is not important","B. It teaches students to work together, share tasks and enjoy cooking as a group activity","C. Cooking should always be done alone","D. Only one person needs to cook while others watch"],answer:"B"},
+    {type:"mcq",question:"What does 'culinary creativity' mean?",options:["A. Cleaning the kitchen","B. Using ingredients imaginatively to prepare attractive and tasty dishes","C. Only following recipes exactly","D. Buying readymade food"],answer:"B"},
+    {type:"mcq",question:"Which of the following is important for food hygiene?",options:["A. Using dirty utensils","B. Washing hands, using clean utensils and storing food properly","C. Tasting food with unwashed hands","D. Leaving food uncovered"],answer:"B"},
+    {type:"mcq",question:"What is the benefit of preparing food without fire in emergency situations?",options:["A. It has no benefit","B. You can still prepare nutritious food even when cooking fuel or equipment is not available","C. It is faster than cooked food","D. It always tastes better than cooked food"],answer:"B"},
+    {type:"mcq",question:"Which of these is a nutritious food that can be prepared without fire?",options:["A. Deep-fried snacks","B. A sprouts salad with vegetables","C. Grilled meat","D. Baked cookies"],answer:"B"},
+    {type:"mcq",question:"What does 'healthy eating' mean?",options:["A. Eating as much as possible","B. Eating a balanced variety of nutritious foods that support good health","C. Only eating fruits","D. Eating only when very hungry"],answer:"B"},
+    {type:"mcq",question:"What life skill does the Cooking without Fire project develop?",options:["A. Only how to use a calculator","B. The ability to prepare simple, nutritious food independently","C. Only how to read recipe books","D. How to open a restaurant"],answer:"B"},
+    {type:"mcq",question:"What is cross-contamination in food preparation?",options:["A. Mixing two different spices","B. The transfer of harmful bacteria from one food item to another","C. Cooking two dishes at the same time","D. Using the same recipe twice"],answer:"B"},
+    {type:"mcq",question:"Which of these vegetables or fruits is rich in Vitamin C?",options:["A. Potato","B. Rice","C. Lemon and amla (Indian gooseberry)","D. Wheat"],answer:"C"},
+    {type:"truefalse",question:"The Cooking without Fire project is an example of Work in Human Services.",answer:"True"},
+    {type:"truefalse",question:"Washing hands before food preparation is not necessary if the food looks clean.",answer:"False"},
+    {type:"truefalse",question:"A fruit salad is an example of food that can be prepared without fire.",answer:"True"},
+    {type:"truefalse",question:"Nutrition refers to how the body gets the necessary nutrients from food.",answer:"True"},
+    {type:"truefalse",question:"Cross-contamination means transferring harmful bacteria from one food to another.",answer:"True"},
+    {type:"truefalse",question:"Fruits and vegetables are good sources of vitamins and minerals.",answer:"True"},
+    {type:"truefalse",question:"Food safety practices are only needed in restaurants, not at home or school.",answer:"False"},
+    {type:"truefalse",question:"The Cooking without Fire project teaches students practical skills for daily life.",answer:"True"},
+    {type:"truefalse",question:"Teamwork is not important in the Cooking without Fire project.",answer:"False"},
+    {type:"truefalse",question:"Learning to prepare food without fire is useful during emergencies.",answer:"True"},
+    {type:"truefalse",question:"Healthy eating means consuming a balanced variety of nutritious foods.",answer:"True"},
+    {type:"truefalse",question:"It is safe to leave food uncovered at room temperature for a long time.",answer:"False"},
+  ],
+
+  "kaushal bodh": [
+    {type:"mcq",question:"What is the full name of the Grade 6 vocational education book published by NCERT?",options:["A. Vigyan Bodh","B. Kaushal Bodh","C. Ganit Bodh","D. Bhasha Bodh"],answer:"B"},
+    {type:"mcq",question:"How many projects are included in the Kaushal Bodh Grade 6 book?",options:["A. Three","B. Four","C. Six","D. Nine"],answer:"C"},
+    {type:"mcq",question:"What are the three forms of work in the NCF-SE 2023 as described in Kaushal Bodh?",options:["A. Reading, Writing and Arithmetic","B. Life Forms, Machines and Materials, and Human Services","C. Science, Art and Sports","D. Agriculture, Technology and Health"],answer:"B"},
+    {type:"mcq",question:"How many projects must students complete in each grade (6, 7 and 8)?",options:["A. One per grade","B. Two per grade","C. Three per grade — one from each form of work","D. Six per grade"],answer:"C"},
+    {type:"mcq",question:"What is the total time allotted to Vocational Education in one academic year?",options:["A. 50 hours","B. 80 hours","C. 110 hours or 165 periods","D. 200 hours"],answer:"C"},
+    {type:"mcq",question:"What is the suggested weightage for written tests in Kaushal Bodh assessment?",options:["A. 50%","B. 30%","C. 20%","D. 10%"],answer:"D"},
+    {type:"mcq",question:"What does NEP 2020 stand for?",options:["A. National Electricity Policy","B. National Education Policy","C. National Environment Programme","D. National Engineering Plan"],answer:"B"},
+    {type:"mcq",question:"Which institute published the Kaushal Bodh Grade 6 book?",options:["A. CBSE","B. IIT Delhi","C. NCERT","D. UGC"],answer:"C"},
+    {type:"mcq",question:"What does NCF-SE stand for?",options:["A. National Curriculum Framework for Science Education","B. National Curriculum Framework for School Education","C. National Certificate Framework for Skill Education","D. National Council Framework for Standard Education"],answer:"B"},
+    {type:"mcq",question:"What is the main purpose of Vocational Education in Grade 6?",options:["A. To prepare students for board examinations only","B. To promote learning by doing, dignity of labour and vocational exposure","C. To teach only theoretical knowledge","D. To replace other school subjects"],answer:"B"},
+    {type:"truefalse",question:"Kaushal Bodh is the Vocational Education Activity Book for Grade 6 by NCERT.",answer:"True"},
+    {type:"truefalse",question:"Students are required to complete nine projects across Grades 6, 7 and 8.",answer:"True"},
+    {type:"truefalse",question:"The practical component of assessment in Kaushal Bodh carries 80% weightage.",answer:"True"},
+    {type:"truefalse",question:"NEP 2020 stands for National Electricity Policy.",answer:"False"},
+    {type:"truefalse",question:"Vocational Education encourages dignity of labour and respect for all types of work.",answer:"True"},
+    {type:"truefalse",question:"All schools must choose only the projects given in the Kaushal Bodh book.",answer:"False"},
+    {type:"truefalse",question:"Work with Life Forms includes projects like growing plants and studying animals.",answer:"True"},
+    {type:"truefalse",question:"The total time for Vocational Education in one year is 110 hours.",answer:"True"},
+    {type:"truefalse",question:"Students should maintain a portfolio to record their project work and progress.",answer:"True"},
+    {type:"truefalse",question:"Kaushal Bodh projects are designed to connect school learning with real life and work.",answer:"True"},
+  ],
+
+  "vocational education": [
+    {type:"mcq",question:"What is the main goal of Vocational Education in Grade 6?",options:["A. Only passing exams","B. Learning practical skills and understanding the world of work","C. Memorising textbook content","D. Winning competitions"],answer:"B"},
+    {type:"mcq",question:"What does 'dignity of labour' mean?",options:["A. Only high-paying jobs are respectable","B. All work is important and no work or worker should be looked down upon","C. Manual work is less important than office work","D. Only educated people should work"],answer:"B"},
+    {type:"mcq",question:"Which of the following is a good example of 'learning by doing'?",options:["A. Reading about gardening only","B. Creating an actual kitchen garden in school","C. Watching a video about gardening","D. Copying notes from the board"],answer:"B"},
+    {type:"mcq",question:"What is an apprenticeship?",options:["A. A type of school examination","B. A programme where you learn a skill or trade by working with an experienced person","C. A government scholarship","D. A type of vocational textbook"],answer:"B"},
+    {type:"mcq",question:"Which of the following is an example of Work in Human Services?",options:["A. Growing vegetables","B. Making a toy","C. Running a school museum or cooking for others","D. Repairing a bicycle"],answer:"C"},
+    {type:"mcq",question:"What does 'formative assessment' mean?",options:["A. A final exam at the end of the year","B. Ongoing assessment during learning to monitor progress","C. A written test only","D. Assessment done only by students themselves"],answer:"B"},
+    {type:"mcq",question:"What is a 'resource person' or 'master instructor' in the context of Kaushal Bodh projects?",options:["A. A student who helps others","B. An expert from the community who guides students in practical skills","C. A government official","D. A book author"],answer:"B"},
+    {type:"mcq",question:"What is the meaning of 'ecological sensitivity'?",options:["A. Being sensitive to people's feelings","B. Being aware of and caring for the environment and ecosystems","C. Avoiding outdoor activities","D. Studying only science subjects"],answer:"B"},
+    {type:"mcq",question:"What does 'holistic development' mean in education?",options:["A. Development of only academic skills","B. All-round development including knowledge, skills, values and physical wellbeing","C. Development of only physical fitness","D. Development of only memory skills"],answer:"B"},
+    {type:"mcq",question:"How many periods of 40 minutes each is each Kaushal Bodh project expected to take?",options:["A. About 10 periods","B. About 30 periods","C. About 55 periods","D. About 100 periods"],answer:"C"},
+    {type:"truefalse",question:"Vocational Education teaches students practical skills connected to real life and work.",answer:"True"},
+    {type:"truefalse",question:"Dignity of labour means that manual or physical work is less important than other work.",answer:"False"},
+    {type:"truefalse",question:"A resource person or master instructor is an expert from the community.",answer:"True"},
+    {type:"truefalse",question:"Formative assessment happens only at the end of the year through a written exam.",answer:"False"},
+    {type:"truefalse",question:"Holistic development includes knowledge, skills, values and physical wellbeing.",answer:"True"},
+    {type:"truefalse",question:"All nine projects in Grades 6, 7 and 8 must be from the same form of work.",answer:"False"},
+    {type:"truefalse",question:"Learning by doing is one of the key principles of Vocational Education.",answer:"True"},
+    {type:"truefalse",question:"Students can design their own projects with teacher guidance in Kaushal Bodh.",answer:"True"},
+    {type:"truefalse",question:"Exposure visits and interaction with professionals are built into Kaushal Bodh projects.",answer:"True"},
+    {type:"truefalse",question:"Gender sensitivity and inclusion are cross-cutting themes in all Kaushal Bodh projects.",answer:"True"},
+  ],
+
+  "workplace safety": [
+    {type:"mcq",question:"What should you do FIRST if you see a fire in the workplace?",options:["A. Try to fight the fire yourself","B. Alert others and activate the fire alarm","C. Continue working","D. Wait for someone else to act"],answer:"B"},
+    {type:"mcq",question:"Which colour is used for a FIRST AID sign in most workplaces?",options:["A. Red","B. Yellow","C. Green","D. Blue"],answer:"C"},
+    {type:"mcq",question:"What does PPE stand for?",options:["A. Personal Protective Equipment","B. Professional Practice Evaluation","C. Prepared Personnel Essentials","D. Primary Prevention Equipment"],answer:"A"},
+    {type:"mcq",question:"When should you wash your hands in the workplace?",options:["A. Only before eating","B. Only after using the toilet","C. Before and after handling food, chemicals, or waste","D. Once a day is enough"],answer:"C"},
+    {type:"mcq",question:"Which sign warns you of electrical danger?",options:["A. A green circle","B. A yellow triangle with a lightning bolt","C. A blue square","D. A red rectangle"],answer:"B"},
+    {type:"mcq",question:"What is the correct way to lift a heavy box?",options:["A. Bend your back and lift quickly","B. Keep your back straight and lift with your legs","C. Twist your body while lifting","D. Ask someone to throw it to you"],answer:"B"},
+    {type:"mcq",question:"What should you wear when working with chemicals?",options:["A. Normal clothes","B. Gloves and safety goggles","C. Just a face mask","D. Nothing extra is needed"],answer:"B"},
+    {type:"mcq",question:"What does a MSDS (Material Safety Data Sheet) tell you?",options:["A. How to sell materials","B. The price of materials","C. Hazards and safe handling of chemicals","D. Who made the material"],answer:"C"},
+    {type:"mcq",question:"Where should fire extinguishers be stored?",options:["A. In a locked cabinet","B. Outside the building","C. In a clearly visible and accessible location","D. Under a desk"],answer:"C"},
+    {type:"mcq",question:"What is the main purpose of a safety harness?",options:["A. To carry tools","B. To prevent falls from height","C. To protect against chemicals","D. To keep clothes clean"],answer:"B"},
+    {type:"mcq",question:"If a colleague gets hurt at work, you should FIRST:",options:["A. Ignore it and keep working","B. Ensure the area is safe then call for help","C. Move the injured person immediately","D. Take a photo"],answer:"B"},
+    {type:"mcq",question:"How often should safety equipment be inspected?",options:["A. Never","B. Only when it looks broken","C. Regularly, as per the manufacturer's guidelines","D. Once a year only"],answer:"C"},
+    {type:"mcq",question:"What colour is a WARNING safety sign?",options:["A. Green","B. Blue","C. Yellow/Amber","D. White"],answer:"C"},
+    {type:"mcq",question:"What does a PROHIBITION sign (red circle with a line) mean?",options:["A. Do this action","B. Be careful","C. This action is not allowed","D. Emergency exit here"],answer:"C"},
+    {type:"mcq",question:"Slips, trips and falls can be prevented by:",options:["A. Running in corridors","B. Keeping walkways clean and dry","C. Wearing sandals","D. Ignoring spills"],answer:"B"},
+    {type:"mcq",question:"What is a hazard in the workplace?",options:["A. A safety sign","B. Anything that could cause harm","C. A protective device","D. A work schedule"],answer:"B"},
+    {type:"mcq",question:"Eye protection should be worn when:",options:["A. Working at a desk","B. Using grinding, cutting, or chemical equipment","C. Answering the phone","D. Walking around the workshop"],answer:"B"},
+    {type:"mcq",question:"Noise-induced hearing loss can be prevented by wearing:",options:["A. Gloves","B. Safety shoes","C. Ear protection / earmuffs","D. A helmet"],answer:"C"},
+    {type:"truefalse",question:"You should always read the safety instructions before using any new equipment.",answer:"True"},
+    {type:"truefalse",question:"It is safe to block emergency exits with boxes if the room is small.",answer:"False"},
+    {type:"truefalse",question:"PPE removes all risk of injury completely.",answer:"False"},
+    {type:"truefalse",question:"A first aid kit should always be easily accessible in the workplace.",answer:"True"},
+    {type:"truefalse",question:"You should report ALL accidents and near-misses to your supervisor.",answer:"True"},
+    {type:"truefalse",question:"It is safe to use damaged electrical equipment if the job needs to be done quickly.",answer:"False"},
+    {type:"truefalse",question:"Safety signs must be followed by all workers at all times.",answer:"True"},
+    {type:"truefalse",question:"Working in poor lighting conditions does not affect workplace safety.",answer:"False"},
+    {type:"truefalse",question:"Proper storage of tools and materials helps prevent workplace accidents.",answer:"True"},
+    {type:"truefalse",question:"It is acceptable to remove safety guards from machines to work faster.",answer:"False"},
+    {type:"truefalse",question:"Every worker has a responsibility to follow health and safety rules.",answer:"True"},
+    {type:"truefalse",question:"Drinking water is allowed near chemical storage areas.",answer:"False"},
+  ],
+  "carpentry": [
+    {type:"mcq",question:"Which tool is used to measure and mark a straight line across wood?",options:["A. Chisel","B. Try square","C. Hammer","D. Drill"],answer:"B"},
+    {type:"mcq",question:"What is the correct way to hold a hand saw when cutting?",options:["A. With two fingers","B. Firmly with the whole hand, index finger pointing forward","C. With both hands on the blade","D. Loosely at the end of the handle"],answer:"B"},
+    {type:"mcq",question:"Which type of wood joint is the strongest for corners?",options:["A. Butt joint","B. Dovetail joint","C. Lap joint","D. Mitre joint"],answer:"B"},
+    {type:"mcq",question:"What does 'grain' refer to in woodworking?",options:["A. The colour of the wood","B. The weight of the wood","C. The direction of the wood fibres","D. The price of the wood"],answer:"C"},
+    {type:"mcq",question:"A claw hammer is used to:",options:["A. Cut wood","B. Drive and remove nails","C. Measure angles","D. Smooth surfaces"],answer:"B"},
+    {type:"mcq",question:"Which sandpaper number gives the SMOOTHEST finish?",options:["A. 40 grit","B. 80 grit","C. 120 grit","D. 220 grit"],answer:"D"},
+    {type:"mcq",question:"What is a tenon saw best used for?",options:["A. Ripping long boards","B. Cutting precise joints and accurate cuts","C. Cutting metal","D. Shaping curves"],answer:"B"},
+    {type:"mcq",question:"Plywood is made by:",options:["A. Carving a single tree trunk","B. Gluing thin layers of wood together with alternating grains","C. Mixing sawdust with glue","D. Weaving wood fibres"],answer:"B"},
+    {type:"mcq",question:"What protective equipment must be worn when using power tools?",options:["A. Only gloves","B. Nothing extra needed","C. Safety glasses and hearing protection","D. Only a hard hat"],answer:"C"},
+    {type:"mcq",question:"Which tool is used to make a hole in wood?",options:["A. Plane","B. Drill","C. Chisel","D. Mallet"],answer:"B"},
+    {type:"mcq",question:"What is the purpose of a wood plane?",options:["A. To drive nails","B. To cut curves","C. To smooth and flatten wood surfaces","D. To measure angles"],answer:"C"},
+    {type:"mcq",question:"MDF stands for:",options:["A. Medium Density Fibreboard","B. Multi Direction Framing","C. Machine Drilled Finish","D. Mixed Dry Furniture"],answer:"A"},
+    {type:"mcq",question:"What is seasoning of wood?",options:["A. Adding flavour to wood","B. Painting the wood","C. Drying wood to reduce moisture content","D. Cutting wood into planks"],answer:"C"},
+    {type:"mcq",question:"A spirit level is used to check that a surface is:",options:["A. Smooth","B. Perfectly horizontal or vertical","C. The right temperature","D. Strong enough"],answer:"B"},
+    {type:"mcq",question:"Hardwood generally comes from:",options:["A. Fast-growing pine trees","B. Slow-growing deciduous trees","C. Bamboo plants","D. Recycled materials"],answer:"B"},
+    {type:"mcq",question:"What is the purpose of wood filler?",options:["A. To join two pieces of wood","B. To fill cracks, holes and imperfections in wood","C. To waterproof wood","D. To change the colour of wood"],answer:"B"},
+    {type:"mcq",question:"Which of these is a hardwood?",options:["A. Pine","B. Cedar","C. Oak","D. Spruce"],answer:"C"},
+    {type:"mcq",question:"Before painting wood, you should:",options:["A. Wet it with water","B. Sand it and apply a primer","C. Heat it with a torch","D. Freeze it overnight"],answer:"B"},
+    {type:"truefalse",question:"You should always cut away from your body when using a chisel.",answer:"True"},
+    {type:"truefalse",question:"Softwood is always weaker than hardwood.",answer:"False"},
+    {type:"truefalse",question:"Measuring twice before cutting helps reduce waste and mistakes.",answer:"True"},
+    {type:"truefalse",question:"A blunt saw blade is safer than a sharp one.",answer:"False"},
+    {type:"truefalse",question:"Wood should be clamped securely before cutting.",answer:"True"},
+    {type:"truefalse",question:"All types of wood can be used outdoors without treatment.",answer:"False"},
+    {type:"truefalse",question:"Wearing safety goggles is important when sanding or cutting wood.",answer:"True"},
+    {type:"truefalse",question:"Power tools should always be unplugged before changing blades or bits.",answer:"True"},
+    {type:"truefalse",question:"Wood expands when it absorbs moisture.",answer:"True"},
+    {type:"truefalse",question:"It is safe to stand directly in line with a rotating circular saw blade.",answer:"False"},
+    {type:"truefalse",question:"A chisel should always be kept sharp for accurate and safe work.",answer:"True"},
+    {type:"truefalse",question:"You do not need to wear a dust mask when sanding wood.",answer:"False"},
+  ],
+  "cooking": [
+    {type:"mcq",question:"What temperature is considered safe for storing cold food?",options:["A. Below 5°C (41°F)","B. Below 15°C (59°F)","C. Below 25°C (77°F)","D. Below 30°C (86°F)"],answer:"A"},
+    {type:"mcq",question:"Which knife is best for chopping vegetables?",options:["A. Bread knife","B. Paring knife","C. Chef's knife","D. Boning knife"],answer:"C"},
+    {type:"mcq",question:"What does 'sauté' mean in cooking?",options:["A. Boiling food in water","B. Frying food quickly in a small amount of oil","C. Baking in an oven","D. Steaming over hot water"],answer:"B"},
+    {type:"mcq",question:"What is the danger zone for food temperature?",options:["A. 0°C – 5°C","B. 5°C – 60°C","C. 60°C – 80°C","D. 80°C – 100°C"],answer:"B"},
+    {type:"mcq",question:"Which method of cooking uses dry heat in an enclosed space?",options:["A. Boiling","B. Steaming","C. Baking","D. Poaching"],answer:"C"},
+    {type:"mcq",question:"What does FIFO stand for in food storage?",options:["A. First In, First Out","B. Food Is Fresh Overall","C. Fast Intake Food Order","D. First Item, Final Output"],answer:"A"},
+    {type:"mcq",question:"Which food group provides the most energy?",options:["A. Vitamins","B. Proteins","C. Carbohydrates","D. Minerals"],answer:"C"},
+    {type:"mcq",question:"What is cross-contamination in the kitchen?",options:["A. Using two ovens at once","B. Mixing raw and cooked foods causing bacteria transfer","C. Cooking food at the wrong temperature","D. Using the wrong spices"],answer:"B"},
+    {type:"mcq",question:"How long should you wash your hands before food preparation?",options:["A. 5 seconds","B. 10 seconds","C. At least 20 seconds","D. 1 minute"],answer:"C"},
+    {type:"mcq",question:"What is the purpose of blanching vegetables?",options:["A. To add flavour","B. To briefly boil then cool to preserve colour and texture","C. To dry them out","D. To make them crispy"],answer:"B"},
+    {type:"mcq",question:"Which cooking method is HEALTHIEST for preserving nutrients?",options:["A. Deep frying","B. Boiling for a long time","C. Steaming","D. Grilling with a lot of oil"],answer:"C"},
+    {type:"mcq",question:"What does 'al dente' mean when cooking pasta?",options:["A. Overcooked and soft","B. Cooked until firm to the bite","C. Raw and uncooked","D. Mixed with sauce"],answer:"B"},
+    {type:"mcq",question:"Which food must be stored SEPARATELY from other foods to avoid contamination?",options:["A. Vegetables","B. Raw meat and poultry","C. Bread","D. Fruits"],answer:"B"},
+    {type:"mcq",question:"What does a food thermometer measure?",options:["A. The weight of food","B. The internal temperature of food to ensure it is safely cooked","C. The freshness of food","D. The calories in food"],answer:"B"},
+    {type:"mcq",question:"What is the correct way to defrost frozen meat?",options:["A. Leave it on the counter all day","B. In the refrigerator overnight","C. In hot water","D. On top of the oven"],answer:"B"},
+    {type:"mcq",question:"Which herb is commonly used in Italian cooking?",options:["A. Coriander","B. Lemongrass","C. Basil","D. Fenugreek"],answer:"C"},
+    {type:"mcq",question:"What does 'mise en place' mean?",options:["A. A French dessert","B. Everything in its place – ingredients prepared before cooking","C. A type of knife cut","D. A cooking temperature"],answer:"B"},
+    {type:"mcq",question:"Which fat is solid at room temperature?",options:["A. Olive oil","B. Sunflower oil","C. Butter","D. Vegetable oil"],answer:"C"},
+    {type:"truefalse",question:"You should use the same chopping board for raw meat and vegetables.",answer:"False"},
+    {type:"truefalse",question:"Food that smells fine is always safe to eat.",answer:"False"},
+    {type:"truefalse",question:"Washing hands is one of the most important food hygiene practices.",answer:"True"},
+    {type:"truefalse",question:"Cooked food should be refrigerated within 2 hours of cooking.",answer:"True"},
+    {type:"truefalse",question:"All bacteria are destroyed when food is frozen.",answer:"False"},
+    {type:"truefalse",question:"A sharp knife is safer than a blunt knife in the kitchen.",answer:"True"},
+    {type:"truefalse",question:"Food allergies can be life-threatening.",answer:"True"},
+    {type:"truefalse",question:"It is safe to refreeze raw meat that has been fully defrosted.",answer:"False"},
+    {type:"truefalse",question:"Boiling water kills most harmful bacteria in food.",answer:"True"},
+    {type:"truefalse",question:"It is safe to taste food to check if it has gone bad.",answer:"False"},
+    {type:"truefalse",question:"Proper labelling of stored food helps prevent food waste.",answer:"True"},
+    {type:"truefalse",question:"Hot food should be stored directly in the fridge while still steaming.",answer:"False"},
+  ],
+  "electricity": [
+    {type:"mcq",question:"What does a fuse do in an electrical circuit?",options:["A. Increases voltage","B. Stores electrical energy","C. Protects the circuit by breaking if current is too high","D. Converts AC to DC"],answer:"C"},
+    {type:"mcq",question:"What unit is used to measure electrical current?",options:["A. Volts","B. Watts","C. Ohms","D. Amperes"],answer:"D"},
+    {type:"mcq",question:"Which colour wire is the LIVE wire in most countries?",options:["A. Green","B. Blue","C. Brown or Red","D. Yellow"],answer:"C"},
+    {type:"mcq",question:"What does an electrician use to test if a circuit is live?",options:["A. A ruler","B. A multimeter or voltage tester","C. A thermometer","D. A spirit level"],answer:"B"},
+    {type:"mcq",question:"What should you do FIRST before repairing any electrical equipment?",options:["A. Put on rubber gloves","B. Switch off and isolate the power supply","C. Test the voltage","D. Call a supervisor"],answer:"B"},
+    {type:"mcq",question:"What is the purpose of earthing in an electrical system?",options:["A. To increase power","B. To save energy","C. To provide a safe path for fault current to prevent electric shock","D. To reduce noise"],answer:"C"},
+    {type:"mcq",question:"What does AC stand for in electricity?",options:["A. Actual Current","B. Alternating Current","C. Active Circuit","D. Applied Charge"],answer:"B"},
+    {type:"mcq",question:"Which material is a good conductor of electricity?",options:["A. Rubber","B. Wood","C. Copper","D. Plastic"],answer:"C"},
+    {type:"mcq",question:"What is measured in Ohms?",options:["A. Voltage","B. Current","C. Power","D. Resistance"],answer:"D"},
+    {type:"mcq",question:"What type of circuit has only one path for current to flow?",options:["A. Parallel circuit","B. Series circuit","C. Mixed circuit","D. Open circuit"],answer:"B"},
+    {type:"mcq",question:"What does a circuit breaker do?",options:["A. Generates electricity","B. Automatically switches off power when a fault is detected","C. Stores electricity","D. Measures voltage"],answer:"B"},
+    {type:"mcq",question:"Which safety device should be used when working on electrical systems?",options:["A. Only rubber gloves","B. Full PPE including insulated gloves and safety glasses","C. A hard hat only","D. Normal work clothes"],answer:"B"},
+    {type:"truefalse",question:"Water is a good conductor of electricity and should never be used near electrical equipment.",answer:"True"},
+    {type:"truefalse",question:"It is safe to overload a plug socket with multiple appliances.",answer:"False"},
+    {type:"truefalse",question:"Electrical work should always be done by a qualified person.",answer:"True"},
+    {type:"truefalse",question:"You can touch a live wire safely if you are wearing rubber-soled shoes.",answer:"False"},
+    {type:"truefalse",question:"A higher wattage bulb uses more electrical energy.",answer:"True"},
+    {type:"truefalse",question:"It is safe to repair a frayed electrical cord with tape.",answer:"False"},
+    {type:"truefalse",question:"Turning off appliances when not in use saves electricity.",answer:"True"},
+    {type:"truefalse",question:"In a parallel circuit, if one bulb blows out, the others stay on.",answer:"True"},
+    {type:"truefalse",question:"Electricity can travel through the human body and cause injury or death.",answer:"True"},
+    {type:"truefalse",question:"Solar panels generate electricity using heat from the sun only.",answer:"False"},
+    {type:"truefalse",question:"A battery stores chemical energy and converts it to electrical energy.",answer:"True"},
+    {type:"truefalse",question:"Voltage is the force that pushes electrical current through a circuit.",answer:"True"},
+    {type:"truefalse",question:"All metals conduct electricity equally well.",answer:"False"},
+    {type:"truefalse",question:"It is safe to use electrical tools in wet or damp conditions.",answer:"False"},
+    {type:"truefalse",question:"Grounding (earthing) helps protect people from electric shock.",answer:"True"},
+    {type:"truefalse",question:"A short circuit can cause a fire.",answer:"True"},
+    {type:"truefalse",question:"LED bulbs use less energy than traditional incandescent bulbs.",answer:"True"},
+    {type:"truefalse",question:"You should always use a licensed electrician for major electrical installations.",answer:"True"},
+    {type:"truefalse",question:"It is safe to pull a plug out by its cable instead of the plug head.",answer:"False"},
+  ],
+  "agriculture": [
+    {type:"mcq",question:"What is the main purpose of crop rotation?",options:["A. To change the colour of the soil","B. To prevent soil depletion and reduce pests","C. To increase the amount of water used","D. To make farming faster"],answer:"B"},
+    {type:"mcq",question:"Which nutrient is MOST important for leaf and stem growth in plants?",options:["A. Phosphorus","B. Potassium","C. Nitrogen","D. Calcium"],answer:"C"},
+    {type:"mcq",question:"What is irrigation?",options:["A. Removing weeds from soil","B. Adding fertiliser to crops","C. Supplying water to crops through artificial means","D. Testing soil quality"],answer:"C"},
+    {type:"mcq",question:"What is composting?",options:["A. Using pesticides on crops","B. Recycling organic waste into fertiliser","C. Planting seeds in rows","D. Testing soil pH"],answer:"B"},
+    {type:"mcq",question:"Which soil type holds water best?",options:["A. Sandy soil","B. Clay soil","C. Gravel","D. Rocky soil"],answer:"B"},
+    {type:"mcq",question:"What does pH measure in soil?",options:["A. The temperature","B. The moisture level","C. The acidity or alkalinity","D. The nutrient content"],answer:"C"},
+    {type:"mcq",question:"Photosynthesis in plants uses which gas from the air?",options:["A. Oxygen","B. Nitrogen","C. Carbon dioxide","D. Hydrogen"],answer:"C"},
+    {type:"mcq",question:"What is a pesticide used for?",options:["A. To water crops","B. To kill or control pests that damage crops","C. To improve soil structure","D. To add nutrients to the soil"],answer:"B"},
+    {type:"mcq",question:"Which farming method does NOT use synthetic chemicals?",options:["A. Conventional farming","B. Organic farming","C. Industrial farming","D. Monoculture farming"],answer:"B"},
+    {type:"mcq",question:"What is the function of roots in a plant?",options:["A. To produce fruit","B. To absorb water and nutrients from the soil","C. To carry out photosynthesis","D. To attract insects for pollination"],answer:"B"},
+    {type:"mcq",question:"Which tool is used for digging and turning soil?",options:["A. Rake","B. Hoe","C. Spade","D. Trowel"],answer:"C"},
+    {type:"mcq",question:"What is germination?",options:["A. When a flower blooms","B. When a seed begins to sprout and grow","C. When a plant is harvested","D. When a plant dies"],answer:"B"},
+    {type:"mcq",question:"Mulching is used to:",options:["A. Kill weeds using chemicals","B. Water plants automatically","C. Cover soil to retain moisture and suppress weeds","D. Test soil nutrients"],answer:"C"},
+    {type:"truefalse",question:"Plants need sunlight to carry out photosynthesis.",answer:"True"},
+    {type:"truefalse",question:"Overwatering plants can damage their roots.",answer:"True"},
+    {type:"truefalse",question:"All insects are harmful to crops and should be killed.",answer:"False"},
+    {type:"truefalse",question:"Soil erosion can be reduced by planting cover crops.",answer:"True"},
+    {type:"truefalse",question:"Fertilisers should always be applied in large amounts for best results.",answer:"False"},
+    {type:"truefalse",question:"Bees play an important role in pollinating crops.",answer:"True"},
+    {type:"truefalse",question:"Sandy soil retains water better than clay soil.",answer:"False"},
+    {type:"truefalse",question:"Crop rotation helps maintain soil health.",answer:"True"},
+    {type:"truefalse",question:"It is safe to eat fruits and vegetables without washing them if they look clean.",answer:"False"},
+    {type:"truefalse",question:"Deforestation can lead to soil erosion and loss of farmland.",answer:"True"},
+    {type:"truefalse",question:"Organic matter in soil improves its fertility.",answer:"True"},
+    {type:"truefalse",question:"Pesticides should be stored in food containers for convenience.",answer:"False"},
+    {type:"truefalse",question:"Drip irrigation uses less water than flood irrigation.",answer:"True"},
+    {type:"truefalse",question:"A greenhouse traps heat and allows plants to grow in colder climates.",answer:"True"},
+    {type:"truefalse",question:"Planting the same crop every year in the same field always improves yield.",answer:"False"},
+    {type:"truefalse",question:"Weeds compete with crops for water and nutrients.",answer:"True"},
+    {type:"truefalse",question:"The topsoil layer is the most fertile layer of soil.",answer:"True"},
+    {type:"truefalse",question:"Using too many chemicals on crops can harm the environment.",answer:"True"},
+  ],
+  "default": [
+    {type:"mcq",question:"What is the most important reason for following workplace rules?",options:["A. To please the employer","B. To ensure safety and smooth operations","C. To avoid paperwork","D. To work faster"],answer:"B"},
+    {type:"mcq",question:"Which of the following is a vocational skill?",options:["A. Reading fiction novels","B. Carpentry, cooking, or electrical work","C. Playing video games","D. Watching documentaries"],answer:"B"},
+    {type:"mcq",question:"What does teamwork mean in a workplace?",options:["A. Working alone on all tasks","B. Competing with colleagues","C. Collaborating with others to achieve a common goal","D. Avoiding communication"],answer:"C"},
+    {type:"mcq",question:"Why is it important to follow instructions carefully at work?",options:["A. To look busy","B. To avoid mistakes and ensure quality work","C. To use more materials","D. To work slower"],answer:"B"},
+    {type:"mcq",question:"What should you do if you do not understand a task?",options:["A. Guess and hope for the best","B. Ignore it","C. Ask your supervisor for clarification","D. Do something else instead"],answer:"C"},
+    {type:"mcq",question:"What is the purpose of wearing a uniform at work?",options:["A. To look fashionable","B. For identification, safety and professionalism","C. To save money on clothes","D. It has no purpose"],answer:"B"},
+    {type:"mcq",question:"Which of the following is good workplace behaviour?",options:["A. Being late regularly","B. Respecting colleagues and following rules","C. Taking long breaks","D. Using your phone constantly"],answer:"B"},
+    {type:"mcq",question:"What does quality control mean?",options:["A. Controlling who enters the building","B. Checking that products or services meet required standards","C. Controlling the quantity of materials","D. Managing employee schedules"],answer:"B"},
+    {type:"mcq",question:"What is a work ethic?",options:["A. A type of tool","B. A safety rule","C. A person's attitude and commitment to doing their job well","D. A job description"],answer:"C"},
+    {type:"mcq",question:"Why is punctuality important at work?",options:["A. It is not important","B. It shows responsibility and respect for others' time","C. It only matters for managers","D. It helps you leave early"],answer:"B"},
+    {type:"mcq",question:"What does sustainability mean in a workplace context?",options:["A. Using as many resources as possible","B. Working as fast as possible","C. Practicing methods that do not harm the environment long-term","D. Hiring more workers"],answer:"C"},
+    {type:"mcq",question:"What is an apprenticeship?",options:["A. A type of school exam","B. On-the-job training where you learn a trade or skill","C. A holiday programme","D. A type of qualification"],answer:"B"},
+    {type:"mcq",question:"Which of these is an example of good communication at work?",options:["A. Ignoring messages","B. Speaking clearly and listening carefully","C. Interrupting colleagues","D. Using complicated language"],answer:"B"},
+    {type:"mcq",question:"What is the purpose of a job description?",options:["A. To describe the company building","B. To outline the duties and responsibilities of a job role","C. To advertise holidays","D. To set pay rates"],answer:"B"},
+    {type:"mcq",question:"What does 'deadline' mean in a work setting?",options:["A. A type of tool","B. The last acceptable date or time to complete a task","C. A safety warning","D. A work break"],answer:"B"},
+    {type:"mcq",question:"Why should you keep your work area tidy?",options:["A. To impress visitors","B. To prevent accidents and work more efficiently","C. Because it is a rule with no reason","D. To hide your work"],answer:"B"},
+    {type:"mcq",question:"What is problem-solving in a vocational context?",options:["A. Ignoring workplace issues","B. Identifying a challenge and finding a practical solution","C. Asking others to solve your problems","D. Avoiding difficult tasks"],answer:"B"},
+    {type:"mcq",question:"What is personal protective equipment (PPE) used for?",options:["A. To look professional","B. To protect workers from hazards and injuries","C. To carry tools","D. To clean the workplace"],answer:"B"},
+    {type:"truefalse",question:"Following safety rules is optional in the workplace.",answer:"False"},
+    {type:"truefalse",question:"Good communication improves teamwork and productivity.",answer:"True"},
+    {type:"truefalse",question:"Vocational education prepares students for specific careers and trades.",answer:"True"},
+    {type:"truefalse",question:"It does not matter if you are late to work as long as you do your job.",answer:"False"},
+    {type:"truefalse",question:"Every worker deserves to be treated with respect.",answer:"True"},
+    {type:"truefalse",question:"Learning practical skills is as important as academic knowledge.",answer:"True"},
+    {type:"truefalse",question:"Wasting materials in the workplace has no consequence.",answer:"False"},
+    {type:"truefalse",question:"A positive attitude helps you perform better at work.",answer:"True"},
+    {type:"truefalse",question:"You should never ask for help when you are struggling with a task.",answer:"False"},
+    {type:"truefalse",question:"Taking pride in your work leads to better quality results.",answer:"True"},
+    {type:"truefalse",question:"It is acceptable to use your phone during important work tasks.",answer:"False"},
+    {type:"truefalse",question:"Keeping skills up to date is important in any trade or vocation.",answer:"True"},
+    {type:"truefalse",question:"All vocational jobs require physical labour.",answer:"False"},
+    {type:"truefalse",question:"Feedback from a supervisor helps you improve your work.",answer:"True"},
+  ]
+};
+
+// Topic mapping per class for generator dropdown
+const GEN_TOPICS = {
+  "6": [
+    { label: "Project 1 — School Kitchen Garden",  key: "school kitchen garden" },
+    { label: "Project 2 — Biodiversity Register",   key: "biodiversity register" },
+    { label: "Project 3 — Maker Skills",            key: "maker skills" },
+    { label: "Project 4 — Animation and Games",     key: "animation and games" },
+    { label: "Project 5 — School Museum",           key: "school museum" },
+    { label: "Project 6 — Cooking without Fire",    key: "cooking without fire" },
+    { label: "General — Kaushal Bodh",              key: "kaushal bodh" },
+    { label: "General — Vocational Education",      key: "vocational education" },
+  ],
+  "7": [
+    { label: "Project 1 — Herbal Garden",           key: "herbal garden" },
+    { label: "Project 2 — Animal Care",             key: "animal care" },
+    { label: "Project 3 — Electrical Repairs",      key: "electrical repairs" },
+    { label: "Project 4 — Designing with Technology", key: "designing with technology" },
+    { label: "Project 5 — Health and Hygiene",      key: "health and hygiene" },
+    { label: "Project 6 — Traditional Recipes",     key: "traditional recipes" },
+    { label: "General — Vocational Education",      key: "vocational education" },
+  ],
+  "8": [
+    { label: "Project 1 — Sustainable Farming",    key: "sustainable farming" },
+    { label: "Project 2 — Water Conservation",     key: "water conservation" },
+    { label: "Project 3 — Basic Construction",     key: "basic construction" },
+    { label: "Project 4 — Digital Communication",  key: "digital communication" },
+    { label: "Project 5 — Community Health",       key: "community health" },
+    { label: "Project 6 — Entrepreneurship",       key: "entrepreneurship" },
+    { label: "General — Vocational Education",     key: "vocational education" },
+  ],
+};
+
+function updateGenTopics() {
+  const cls = document.getElementById('gen-class').value;
+  const sel = document.getElementById('gen-topic');
+  const list = GEN_TOPICS[cls] || [];
+  sel.innerHTML = '<option value="">-- Choose Chapter --</option>' +
+    list.map(t => `<option value="${t.key}">${t.label}</option>`).join('');
+}
+
+function generateQuestions() {
+  const cls   = document.getElementById('gen-class').value;
+  const topic = document.getElementById('gen-topic').value;
+  const count = parseInt(document.getElementById('gen-count').value);
+
+  if (!cls)   { showToast('⚠️ Please select a Class first!');   return; }
+  if (!topic) { showToast('⚠️ Please select a Chapter / Topic!'); return; }
+
+  document.getElementById('gen-btn').disabled = true;
+  document.getElementById('gen-status').style.display = 'block';
+  document.getElementById('gen-preview').innerHTML = '';
+  document.getElementById('gen-status-text').textContent = 'Loading questions…';
+
+  setTimeout(() => {
+    // Find bank
+    let bank = QUESTION_BANK[topic] || null;
+    if (!bank) {
+      for (const key of Object.keys(QUESTION_BANK)) {
+        if (key === 'default') continue;
+        if (topic.includes(key) || key.includes(topic)) { bank = QUESTION_BANK[key]; break; }
+      }
+    }
+    if (!bank) bank = QUESTION_BANK['default'] || [];
+
+    const shuffled = [...bank].sort(() => Math.random() - 0.5);
+    const picked   = shuffled.slice(0, Math.min(count, shuffled.length));
+    picked.forEach((q, i) => {
+      q.id         = Date.now() + i;
+      q.forClass   = cls;
+      q.forChapter = (GEN_TOPICS[cls]||[]).find(t=>t.key===topic)?.label || topic;
+    });
+
+    questions = [...questions, ...picked];
+    saveData();
+
+    const topicLabel = (GEN_TOPICS[cls]||[]).find(t=>t.key===topic)?.label || topic;
+    renderGenPreview(picked, `Class ${cls} — ${topicLabel}`);
+    refreshTeacher();
+    showToast(`✅ ${picked.length} questions loaded for Class ${cls} — ${topicLabel}!`);
+
+    document.getElementById('gen-btn').disabled = false;
+    document.getElementById('gen-status').style.display = 'none';
+  }, 400);
+}
+
+function renderGenPreview(qs, topicLabel) {
+  const el = document.getElementById('gen-preview');
+  el.innerHTML = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+    <h3 style="font-size:1rem;font-weight:700;">Preview — ${topicLabel} (${qs.length} questions)</h3>
+    <button class="btn btn-blue btn-sm" onclick="document.querySelectorAll('.tab')[2].click()">View Full Bank →</button>
+  </div>` + qs.slice(0, 5).map(q => renderQItem(q)).join('') +
+  (qs.length > 5 ? `<p style="text-align:center;color:var(--muted);font-size:0.85rem;margin-top:12px;">+${qs.length - 5} more questions in Question Bank</p>` : '');
+}
+
+// ═══════════════════════════════════════════════════════
+//  QUESTION BANK
+// ═══════════════════════════════════════════════════════
+function renderQItem(q, deletable = false) {
+  const typeMap = { mcq: ['MCQ', 'type-mcq'], truefalse: ['True/False', 'type-tf'] };
+  const [label, cls] = typeMap[q.type] || ['Unknown', ''];
+  let optionsHtml = '';
+  if (q.type === 'mcq') {
+    optionsHtml = `<div class="q-options">${q.options.map(o => `<div class="q-opt${o.startsWith(q.answer) ? ' correct' : ''}">${o}</div>`).join('')}</div>`;
+  } else if (q.type === 'truefalse') {
+    optionsHtml = `<div class="q-options"><div class="q-opt${q.answer==='True'?' correct':''}">True</div><div class="q-opt${q.answer==='False'?' correct':''}">False</div></div>`;
+  } else {
+    optionsHtml = `<div style="font-size:0.82rem;color:var(--green);margin-top:6px;">✓ Answer: ${q.answer}</div>`;
+  }
+  return `<div class="q-item">
+    ${deletable ? `<button class="q-delete" onclick="deleteQ(${q.id})">✕</button>` : ''}
+    <div class="q-type ${cls}">${label}</div>
+    <div class="q-text">${q.question}</div>
+    ${optionsHtml}
+  </div>`;
+}
+
+function renderQItemWithMeta(q) {
+  const typeMap = { mcq:['MCQ','type-mcq'], truefalse:['True/False','type-tf'] };
+  const [label, cls2] = typeMap[q.type] || ['Unknown',''];
+  let optHtml = '';
+  if (q.type==='mcq') {
+    optHtml = `<div class="q-options">${q.options.map(o=>`<div class="q-opt${o.startsWith(q.answer)?' correct':''}">${o}</div>`).join('')}</div>`;
+  } else {
+    optHtml = `<div class="q-options"><div class="q-opt${q.answer==='True'?' correct':''}">True</div><div class="q-opt${q.answer==='False'?' correct':''}">False</div></div>`;
+  }
+  const classBadge = q.forClass ? `<span style="background:#1e3a5f;color:var(--blue);font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:10px;margin-right:6px">Class ${q.forClass}</span>` : '';
+  const chapBadge  = q.forChapter ? `<span style="background:#1a0d00;color:var(--accent);font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:10px">${q.forChapter.replace(/Project \d+ — /,'')}</span>` : '';
+  return `<div class="q-item">
+    <button class="q-delete" onclick="deleteQ(${q.id})">✕</button>
+    <div style="margin-bottom:8px">${classBadge}${chapBadge}</div>
+    <div class="q-type ${cls2}">${label}</div>
+    <div class="q-text">${q.question}</div>
+    ${optHtml}
+  </div>`;
+}
+
+function renderQBank() {
+  const el       = document.getElementById('qbank-list');
+  const filterCls  = (document.getElementById('qb-filter-class')?.value  || '').trim();
+  const filterChap = (document.getElementById('qb-filter-chapter')?.value || '').trim();
+
+  let filtered = questions;
+  if (filterCls)  filtered = filtered.filter(q => String(q.forClass||'') === filterCls);
+  if (filterChap) filtered = filtered.filter(q => (q.forChapter||'') === filterChap);
+
+  // Count label
+  let countLabel = `${questions.length} question${questions.length!==1?'s':''} in bank`;
+  if (filterCls || filterChap) {
+    countLabel += ` — showing ${filtered.length} for `;
+    if (filterCls)  countLabel += `Class ${filterCls}`;
+    if (filterChap) countLabel += ` › ${filterChap}`;
+  }
+  document.getElementById('qbank-count').textContent = countLabel;
+
+  if (!filtered.length) {
+    el.innerHTML = `<div class="empty-state"><div class="icon">📋</div><p>${questions.length ? 'No questions match this filter.' : 'No questions yet. Use Auto Load or Add Question tabs.'}</p></div>`;
+    return;
+  }
+  el.innerHTML = filtered.map(q => renderQItemWithMeta(q)).join('');
+}
+
+function deleteQ(id) {
+  questions = questions.filter(q => q.id !== id);
+  saveData(); renderQBank(); refreshTeacher();
+  showToast('Question deleted');
+}
+
+function clearQuestions() {
+  if (!confirm('Delete all questions?')) return;
+  questions = []; saveData(); renderQBank(); refreshTeacher();
+  showToast('Question bank cleared');
+}
+
+// ═══════════════════════════════════════════════════════
+//  RESULTS
+// ═══════════════════════════════════════════════════════
+function renderResults() {
+  const tbody = document.getElementById('results-tbody');
+  const empty = document.getElementById('results-empty');
+  if (!results.length) {
+    tbody.innerHTML = ''; empty.style.display = 'block'; return;
+  }
+  empty.style.display = 'none';
+  tbody.innerHTML = results.slice().reverse().map((r, i) => {
+    const grade = calcGrade(r.pct);
+    const mins = Math.floor(r.timeTaken / 60), secs = r.timeTaken % 60;
+    return `<tr>
+      <td><b>${r.studentName}</b></td>
+      <td><span style="font-family:'DM Mono',monospace;font-size:0.88rem;font-weight:700;">${r.studentId}</span></td>
+      <td><span class="nav-badge" style="background:var(--surface2);color:var(--accent);border:1px solid var(--accent)">Class ${r.studentClass || '—'}</span></td>
+      <td><span class="nav-badge" style="background:var(--surface2);color:var(--blue);border:1px solid var(--blue)">Sec ${r.section || '—'}</span></td>
+      <td style="font-size:0.8rem;color:var(--muted);max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${r.topic || '—'}</td>
+      <td>
+        <b>${r.score}/${r.total}</b>
+        <div class="progress-bar" style="width:80px;margin-top:4px;"><div class="progress-fill" style="width:${r.pct}%;background:${r.pct>=settings.passScore?'var(--green)':'var(--red)'}"></div></div>
+        <div style="font-size:0.75rem;color:var(--muted)">${r.pct}%</div>
+      </td>
+      <td><span class="grade-badge grade-${grade}">${grade}</span></td>
+      <td style="font-family:'DM Mono',monospace;font-size:0.82rem">${mins}m ${secs}s</td>
+      <td style="font-size:0.82rem;color:var(--muted)">${new Date(r.date).toLocaleDateString()}</td>
+      <td><button class="btn btn-outline btn-sm" onclick="viewDetail(${results.length - 1 - i})">View</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function calcGrade(pct) {
+  if (pct >= 90) return 'A';
+  if (pct >= 80) return 'B';
+  if (pct >= 70) return 'C';
+  if (pct >= 60) return 'D';
+  return 'F';
+}
+
+function clearResults() {
+  if (!confirm('Delete all student results?')) return;
+  results = []; saveData(); renderResults(); refreshTeacher();
+  showToast('Results cleared');
+}
+
+function viewDetail(idx) {
+  const r = results[idx];
+  document.getElementById('modal-student-name').textContent = `${r.studentName} — ${r.studentId}`;
+  const grade = calcGrade(r.pct);
+  let html = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+    <div class="stat-card"><div class="val">${r.pct}%</div><div class="lbl">Score</div></div>
+    <div class="stat-card"><div class="val grade-${grade}" style="color:inherit"><span class="grade-badge grade-${grade}" style="font-size:1.1rem">${grade}</span></div><div class="lbl">Grade</div></div>
+  </div><h4 style="font-size:0.88rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;">Per-Question Breakdown</h4><div style="display:flex;flex-direction:column;gap:8px;">`;
+  (r.breakdown || []).forEach((b, i) => {
+    html += `<div class="bd-item ${b.correct ? 'bd-correct' : 'bd-wrong'}">
+      <div style="font-size:0.78rem;font-weight:700;color:${b.correct ? 'var(--green)' : 'var(--red)'};margin-bottom:4px;">Q${i+1} — ${b.correct ? '✓ Correct' : '✗ Wrong'}</div>
+      <div style="font-size:0.88rem;font-weight:600;margin-bottom:4px;">${b.question}</div>
+      <div style="font-size:0.82rem;color:var(--muted)">Your answer: <b style="color:var(--text)">${b.studentAns || '(no answer)'}</b></div>
+      ${!b.correct ? `<div style="font-size:0.82rem;color:var(--green)">Correct: <b>${b.correct_ans}</b></div>` : ''}
+    </div>`;
+  });
+  html += '</div>';
+  document.getElementById('modal-content').innerHTML = html;
+  document.getElementById('modal-detail').classList.add('open');
+}
+
+function closeModal() { document.getElementById('modal-detail').classList.remove('open'); }
+
+// ═══════════════════════════════════════════════════════
+//  SETTINGS
+// ═══════════════════════════════════════════════════════
+function loadSettingsForm() {
+  document.getElementById('set-title').value    = settings.title;
+  document.getElementById('set-time').value     = settings.timeLimit;
+  document.getElementById('set-pass').value     = settings.passScore;
+  document.getElementById('set-show-ans').value = settings.showAnswers;
+  document.getElementById('set-gas-url').value  = GAS_URL || '';
+}
+
+function copyGASCode() {
+  const code = document.getElementById('gas-code').textContent;
+  navigator.clipboard.writeText(code).then(() => showToast('✅ Code copied! Paste it into Apps Script.'));
+}
+
+function saveGASUrl() {
+  const url = document.getElementById('set-gas-url').value.trim();
+  if (!url || !url.includes('script.google.com')) {
+    showToast('❌ Please enter a valid Google Apps Script URL'); return;
+  }
+  GAS_URL = url;
+  localStorage.setItem('voced-gas-url', GAS_URL);
+  showToast('✅ Google Sheets URL saved! Results will now auto-save there.');
+  document.getElementById('gas-status').style.cssText = 'display:block;background:#14532d;color:var(--green);padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:0.85rem;font-weight:600';
+  document.getElementById('gas-status').textContent = '✅ Connected! Every student result will appear in your Google Sheet automatically.';
+}
+
+async function testGASUrl() {
+  const url = document.getElementById('set-gas-url').value.trim() || GAS_URL;
+  const st  = document.getElementById('gas-status');
+  if (!url) { showToast('\u26a0\ufe0f Pehle Web App URL daalo'); return; }
+  if (!url.includes('script.google.com')) {
+    st.style.cssText = 'display:block;background:#450a0a;color:var(--red);padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:0.85rem;font-weight:600';
+    st.textContent = '\u274c Yeh Google Apps Script URL nahi lagti. script.google.com wala URL chahiye.';
+    return;
+  }
+  st.style.cssText = 'display:block;background:#1a0d00;color:var(--accent);padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:0.85rem;font-weight:600';
+  st.textContent = '\u23f3 Connection test ho raha hai...';
+  try {
+    const params = new URLSearchParams({ action:'saveResult', name:'__TEST__', roll:'0000', cls:'Test', section:'Test', topic:'Connection Test', score:'0', total:'0', pct:'0%', grade:'A', result:'Pass', date: new Date().toLocaleString(), time:'0' });
+    await fetch(url + '?' + params.toString(), { method:'GET', mode:'no-cors' });
+    st.style.cssText = 'display:block;background:#14532d;color:var(--green);padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:0.85rem;font-weight:600';
+    st.textContent = '\u2705 URL sahi hai! Ab results automatically Google Sheet mein jayenge. (Note: Sheet mein ek TEST row bhi add hui hogi — use delete kar dena)';
+    GAS_URL = url;
+    localStorage.setItem('voced-gas-url', GAS_URL);
+  } catch(e) {
+    st.style.cssText = 'display:block;background:#450a0a;color:var(--red);padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:0.85rem;font-weight:600';
+    st.textContent = '\u274c Fetch fail hua. Internet check karo aur dobara try karo.';
+  }
+}
+
+function saveSettings() {
+  settings.title = document.getElementById('set-title').value || settings.title;
+  settings.timeLimit = parseInt(document.getElementById('set-time').value) || 45;
+  settings.passScore = parseInt(document.getElementById('set-pass').value) || 60;
+  settings.showAnswers = document.getElementById('set-show-ans').value;
+  saveData(); showToast('✅ Settings saved!');
+}
+
+// ═══════════════════════════════════════════════════════
+//  REFRESH STATS
+// ═══════════════════════════════════════════════════════
+function refreshTeacher() {
+  document.getElementById('stat-q').textContent = questions.length;
+  document.getElementById('stat-s').textContent = results.length;
+  if (results.length) {
+    const avg = Math.round(results.reduce((a, r) => a + r.pct, 0) / results.length);
+    const pass = Math.round(results.filter(r => r.pct >= settings.passScore).length / results.length * 100);
+    document.getElementById('stat-avg').textContent = avg + '%';
+    document.getElementById('stat-pass').textContent = pass + '%';
+  } else {
+    document.getElementById('stat-avg').textContent = '—';
+    document.getElementById('stat-pass').textContent = '—';
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  CLASS-WISE TOPIC MAPPING
+// ═══════════════════════════════════════════════════════
+const CLASS_TOPICS = {
+  "6": [
+    { label: "Project 1 — School Kitchen Garden", key: "school kitchen garden" },
+    { label: "Project 2 — Biodiversity Register",  key: "biodiversity register" },
+    { label: "Project 3 — Maker Skills",           key: "maker skills" },
+    { label: "Project 4 — Animation and Games",    key: "animation and games" },
+    { label: "Project 5 — School Museum",          key: "school museum" },
+    { label: "Project 6 — Cooking without Fire",   key: "cooking without fire" },
+    { label: "All Topics — General Kaushal Bodh",  key: "kaushal bodh" },
+  ],
+  "7": [
+    { label: "Project 1 — Herbal Garden",              key: "herbal garden" },
+    { label: "Project 2 — Animal Care",                key: "animal care" },
+    { label: "Project 3 — Electrical Repairs",         key: "electrical repairs" },
+    { label: "Project 4 — Designing with Technology",  key: "designing with technology" },
+    { label: "Project 5 — Health and Hygiene",         key: "health and hygiene" },
+    { label: "Project 6 — Traditional Recipes",        key: "traditional recipes" },
+    { label: "All Topics — General Vocational (Gr 7)", key: "vocational education" },
+  ],
+  "8": [
+    { label: "Project 1 — Sustainable Farming",        key: "sustainable farming" },
+    { label: "Project 2 — Water Conservation",         key: "water conservation" },
+    { label: "Project 3 — Basic Construction Skills",  key: "basic construction" },
+    { label: "Project 4 — Digital Communication",      key: "digital communication" },
+    { label: "Project 5 — Community Health",           key: "community health" },
+    { label: "Project 6 — Entrepreneurship",           key: "entrepreneurship" },
+    { label: "All Topics — General Vocational (Gr 8)", key: "workplace safety" },
+  ],
+};
+
+function updateTopicOptions() {
+  const cls = document.getElementById('stu-class').value;
+  const topicGroup = document.getElementById('topic-group');
+  const topicSel = document.getElementById('stu-topic');
+  if (!cls) { topicGroup.style.display = 'none'; return; }
+  topicGroup.style.display = 'block';
+  const topics = CLASS_TOPICS[cls] || [];
+  topicSel.innerHTML = '<option value="">-- Choose Topic --</option>' +
+    topics.map(t => `<option value="${t.key}">${t.label}</option>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+//  STUDENT TEST
+// ═══════════════════════════════════════════════════════
+function startTest() {
+  const name     = document.getElementById('stu-name').value.trim();
+  const id       = document.getElementById('stu-id').value.trim();
+  const cls      = document.getElementById('stu-class').value;
+  const section  = document.getElementById('stu-section').value;
+  const topicKey = document.getElementById('stu-topic') ? document.getElementById('stu-topic').value : '';
+  const msg      = document.getElementById('student-login-msg');
+
+  if (!name || !id) {
+    msg.textContent = 'Please enter your name and roll number to proceed.';
+    msg.style.display = 'block'; return;
+  }
+  if (!/^\d{4}$/.test(id)) {
+    msg.textContent = '❌ Roll number must be exactly 4 digits (e.g. 7301). Please check and try again.';
+    msg.style.display = 'block'; return;
+  }
+  if (!cls) {
+    msg.textContent = 'Please select your class.';
+    msg.style.display = 'block'; return;
+  }
+  if (!section) {
+    msg.textContent = 'Please select your section.';
+    msg.style.display = 'block'; return;
+  }
+  if (!topicKey) {
+    msg.textContent = 'Please select a chapter / topic.';
+    msg.style.display = 'block'; return;
+  }
+
+  // Get questions: first try manual questions tagged to this class+chapter
+  let pool = [];
+  const topicLower = topicKey.toLowerCase();
+
+  // Manual questions tagged exactly to this class + chapter
+  const manualMatches = questions.filter(q =>
+    String(q.forClass||'') === cls &&
+    (q.forChapter||'').toLowerCase().includes(topicLower.substring(0,15))
+  );
+  if (manualMatches.length) pool = [...manualMatches];
+
+  // Also check QUESTION_BANK built-in bank
+  let bankPool = [];
+  for (const key of Object.keys(QUESTION_BANK)) {
+    if (key === topicLower || topicLower.includes(key) || key.includes(topicLower)) {
+      bankPool = [...QUESTION_BANK[key]]; break;
+    }
+  }
+  if (!bankPool.length) {
+    const words = topicLower.split(' ');
+    for (const key of Object.keys(QUESTION_BANK)) {
+      if (key==='default') continue;
+      if (words.some(w=>w.length>3&&key.includes(w))) { bankPool=[...QUESTION_BANK[key]]; break; }
+    }
+  }
+
+  // Merge: manual questions first, then fill from bank
+  pool = [...manualMatches];
+  bankPool.forEach(q => { if (!pool.find(p=>p.question===q.question)) pool.push(q); });
+
+  // Fallback
+  if (!pool.length && questions.length) pool = [...questions];
+  if (!pool.length) pool = [...(QUESTION_BANK['default']||[])];
+
+  if (!pool.length) {
+    msg.textContent = 'No questions available for this topic yet. Please ask your teacher.';
+    msg.style.display = 'block'; return;
+  }
+
+  msg.style.display = 'none';
+
+  // Find topic label
+  const topicsList = CLASS_TOPICS[cls] || [];
+  const topicObj = topicsList.find(t => t.key === topicKey);
+  const topicLabel = topicObj ? topicObj.label : topicKey;
+
+  currentStudent = { name, id, class: cls, section, topic: topicLabel };
+  testAnswers = {};
+  currentQ = 0;
+  testStartTime = Date.now();
+
+  const shuffled = pool.sort(() => Math.random() - 0.5).slice(0, 30);
+  window._testQuestions = shuffled;
+
+  document.getElementById('test-title-bar').textContent = `Class ${cls}-${section} — ${topicLabel}`;
+  document.getElementById('test-student-bar').textContent = `${name} (Roll: ${id}) · Class ${cls}-${section}`;
+
+  startTimer();
+  renderTestQ();
+  showPage('page-test');
+}
+
+
+function startTimer() {
+  clearInterval(timerInterval);
+  if (settings.timeLimit <= 0) {
+    document.getElementById('timer-display').textContent = '∞';
+    return;
+  }
+  timerSeconds = settings.timeLimit * 60;
+  updateTimerDisplay();
+  timerInterval = setInterval(() => {
+    timerSeconds--;
+    updateTimerDisplay();
+    if (timerSeconds <= 0) { clearInterval(timerInterval); submitTest(); }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(timerSeconds / 60), s = timerSeconds % 60;
+  const el = document.getElementById('timer-display');
+  el.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  el.classList.toggle('warning', timerSeconds <= 120);
+}
+
+function renderTestQ() {
+  const qs = window._testQuestions;
+  // Progress dots
+  let dots = '';
+  qs.forEach((q, i) => {
+    const answered = testAnswers[i] !== undefined;
+    dots += `<div class="q-dot ${i === currentQ ? 'current' : ''} ${answered ? 'answered' : ''}" onclick="jumpQ(${i})">${i+1}</div>`;
+  });
+  document.getElementById('q-progress').innerHTML = dots;
+
+  const q = qs[currentQ];
+  let html = `<div class="q-card">
+    <div class="q-num">Question ${currentQ + 1} of ${qs.length}</div>
+    <div class="q-text">${q.question}</div>`;
+
+  if (q.type === 'mcq') {
+    html += `<div class="options-list">` + q.options.map((opt, i) => {
+      const letter = opt.charAt(0);
+      const sel = testAnswers[currentQ] === letter ? 'selected' : '';
+      return `<button class="option-btn ${sel}" onclick="selectMCQ('${letter}', this)">${opt}</button>`;
+    }).join('') + `</div>`;
+  } else if (q.type === 'truefalse') {
+    const ans = testAnswers[currentQ];
+    html += `<div class="options-list">
+      <button class="option-btn ${ans === 'True' ? 'selected' : ''}" onclick="selectTF('True', this)"><span class="opt-letter">T</span> True</button>
+      <button class="option-btn ${ans === 'False' ? 'selected' : ''}" onclick="selectTF('False', this)"><span class="opt-letter">F</span> False</button>
+    </div>`;
+  }
+  html += `</div>`;
+  document.getElementById('q-area').innerHTML = html;
+}
+
+function selectMCQ(letter, btn) {
+  testAnswers[currentQ] = letter;
+  document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  renderDots();
+}
+
+function selectTF(val, btn) {
+  testAnswers[currentQ] = val;
+  document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  renderDots();
+}
+
+function saveFill(val) {
+  testAnswers[currentQ] = val;
+  renderDots();
+}
+
+function renderDots() {
+  const qs = window._testQuestions;
+  qs.forEach((q, i) => {
+    const dot = document.querySelectorAll('.q-dot')[i];
+    if (dot) {
+      dot.classList.toggle('answered', testAnswers[i] !== undefined && testAnswers[i] !== '');
+      dot.classList.toggle('current', i === currentQ);
+    }
+  });
+}
+
+function nextQ() {
+  if (currentQ < window._testQuestions.length - 1) { currentQ++; renderTestQ(); }
+}
+function prevQ() {
+  if (currentQ > 0) { currentQ--; renderTestQ(); }
+}
+function jumpQ(i) { currentQ = i; renderTestQ(); }
+
+function confirmSubmit() {
+  const total = window._testQuestions.length;
+  const answered = Object.keys(testAnswers).length;
+  const unanswered = total - answered;
+  if (unanswered > 0) {
+    if (!confirm(`You have ${unanswered} unanswered question(s). Submit anyway?`)) return;
+  }
+  submitTest();
+}
+
+function submitTest() {
+  clearInterval(timerInterval);
+  const qs = window._testQuestions;
+  const timeTaken = Math.round((Date.now() - testStartTime) / 1000);
+  let score = 0;
+  const breakdown = qs.map((q, i) => {
+    const ans = (testAnswers[i] || '').toString().trim().toLowerCase();
+    const correct = q.answer.toString().trim().toLowerCase();
+    let isCorrect = false;
+    if (q.type === 'mcq') isCorrect = ans === correct.toLowerCase();
+    else if (q.type === 'truefalse') isCorrect = ans === correct;
+    if (isCorrect) score++;
+    return { question: q.question, type: q.type, studentAns: testAnswers[i] || '', correct_ans: q.answer, correct: isCorrect };
+  });
+  const pct = Math.round(score / qs.length * 100);
+  const result = {
+    studentName: currentStudent.name, studentId: currentStudent.id,
+    studentClass: currentStudent.class, section: currentStudent.section,
+    topic: currentStudent.topic, score, total: qs.length, pct, timeTaken,
+    date: new Date().toISOString(), breakdown
+  };
+  results.push(result);
+  saveData();
+  // Send to Google Sheet (fires and forgets — doesn't block student from seeing result)
+  saveResultToSheet(result);
+  showResultPage(result);
+}
+
+// ═══════════════════════════════════════════════════════
+//  RESULT PAGE
+// ═══════════════════════════════════════════════════════
+function showResultPage(r) {
+  const grade = calcGrade(r.pct);
+  const passed = r.pct >= settings.passScore;
+  const wrong = r.total - r.score;
+
+  // Score ring
+  document.getElementById('res-pct').textContent = r.pct + '%';
+  document.getElementById('res-grade-lbl').textContent = 'Grade ' + grade;
+  document.getElementById('res-heading').textContent = passed ? '🎉 Well Done!' : '📚 Keep Practicing!';
+  document.getElementById('res-sub').textContent = `Class ${r.studentClass || ''} — ${r.topic || ''} | ${r.score} out of ${r.total} correct — ${passed ? 'You passed!' : 'You did not reach the pass mark of ' + settings.passScore + '%'}`;
+  const mins = Math.floor(r.timeTaken / 60), secs = r.timeTaken % 60;
+  document.getElementById('res-time-taken').textContent = `Time taken: ${mins}m ${secs}s`;
+
+  // Grade stat cards
+  const gradeColors = { A: 'var(--green)', B: 'var(--blue)', C: 'var(--accent)', D: 'var(--yellow)', F: 'var(--red)' };
+  const gradeLabels = { A: 'Excellent', B: 'Good', C: 'Average', D: 'Below Avg', F: 'Fail' };
+  const gradeCard = document.getElementById('res-grade-card');
+  gradeCard.textContent = grade;
+  gradeCard.style.color = gradeColors[grade];
+  gradeCard.title = gradeLabels[grade];
+
+  // Add grade label below letter
+  gradeCard.innerHTML = `<span style="font-size:2rem;font-weight:800;color:${gradeColors[grade]}">${grade}</span><div style="font-size:0.72rem;color:${gradeColors[grade]};margin-top:2px;">${gradeLabels[grade]}</div>`;
+
+  document.getElementById('res-score-card').textContent = r.pct + '%';
+  document.getElementById('res-correct-card').textContent = r.score;
+  document.getElementById('res-wrong-card').textContent = wrong;
+
+  // Animate arc
+  setTimeout(() => {
+    const circ = 408;
+    document.getElementById('score-arc').style.strokeDashoffset = circ - (circ * r.pct / 100);
+    document.getElementById('score-arc').style.stroke = r.pct >= settings.passScore ? 'var(--green)' : 'var(--red)';
+  }, 200);
+
+  // Breakdown
+  let bdHtml = '';
+  if (settings.showAnswers === 'yes') {
+    r.breakdown.forEach((b, i) => {
+      bdHtml += `<div class="bd-item ${b.correct ? 'bd-correct' : 'bd-wrong'}">
+        <div style="font-size:0.78rem;font-weight:700;color:${b.correct ? 'var(--green)' : 'var(--red)'};margin-bottom:4px;">Q${i+1} — ${b.correct ? '✓ Correct' : '✗ Incorrect'}</div>
+        <div style="font-size:0.88rem;font-weight:600;margin-bottom:4px;">${b.question}</div>
+        <div style="font-size:0.82rem;color:var(--muted)">Your answer: <b style="color:var(--text)">${b.studentAns || '(no answer)'}</b></div>
+        ${!b.correct ? `<div style="font-size:0.82rem;color:var(--green);margin-top:3px;">Correct: ${b.correct_ans}</div>` : ''}
+      </div>`;
+    });
+  } else {
+    bdHtml = `<p style="color:var(--muted);text-align:center;padding:20px;">Answer review is disabled by your teacher.</p>`;
+  }
+  document.getElementById('breakdown-list').innerHTML = bdHtml;
+
+  showPage('page-result');
+}
+
+
+
+
+function updateAQChapters(prefix) {
+  const cls = document.getElementById(prefix + '-class').value;
+  const sel = document.getElementById(prefix + '-chapter');
+  const topics = cls ? (CLASS_TOPICS[cls] || []) : [];
+  sel.innerHTML = '<option value="">-- Select Chapter --</option>' +
+    topics.map(t => `<option value="${t.label}">${t.label}</option>`).join('');
+}
+
+function updateQBChapters() {
+  const cls = document.getElementById('qb-filter-class').value;
+  const sel = document.getElementById('qb-filter-chapter');
+  const topics = cls ? (CLASS_TOPICS[cls] || []) : [];
+  sel.innerHTML = '<option value="">All Chapters</option>' +
+    topics.map(t => `<option value="${t.label}">${t.label}</option>`).join('');
+  renderQBank();
+}
+
+function resetQBFilter() {
+  document.getElementById('qb-filter-class').value = '';
+  document.getElementById('qb-filter-chapter').value = '';
+  updateQBChapters();
+}
+
+function addManualQuestion() {
+  const cls    = document.getElementById('aq-class').value;
+  const chap   = document.getElementById('aq-chapter').value;
+  const q      = document.getElementById('aq-question').value.trim();
+  const a      = document.getElementById('aq-a').value.trim();
+  const b      = document.getElementById('aq-b').value.trim();
+  const c      = document.getElementById('aq-c').value.trim();
+  const d      = document.getElementById('aq-d').value.trim();
+  const ans    = document.getElementById('aq-correct').value;
+  const msg    = document.getElementById('aq-msg');
+
+  if (!cls || !chap) {
+    msg.style.cssText='display:block;background:#450a0a;color:var(--red);padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:0.87rem;font-weight:600';
+    msg.textContent = '❌ Please select a Class and Chapter first.'; return;
+  }
+  if (!q || !a || !b || !c || !d || !ans) {
+    msg.style.cssText='display:block;background:#450a0a;color:var(--red);padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:0.87rem;font-weight:600';
+    msg.textContent = '❌ Please fill in the question, all 4 options, and the correct answer.'; return;
+  }
+
+  questions.push({ id: Date.now(), type:'mcq', forClass: cls, forChapter: chap,
+    question: q, options: ['A. '+a,'B. '+b,'C. '+c,'D. '+d], answer: ans });
+  saveData(); refreshTeacher();
+
+  ['aq-question','aq-a','aq-b','aq-c','aq-d'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('aq-correct').value='';
+  msg.style.cssText='display:block;background:#14532d;color:var(--green);padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:0.87rem;font-weight:600';
+  msg.textContent = `✅ MCQ added to Class ${cls} — ${chap}! (${questions.length} total)`;
+  setTimeout(()=>msg.style.display='none', 3500);
+}
+
+function addTFQuestion() {
+  const cls  = document.getElementById('tf-class').value;
+  const chap = document.getElementById('tf-chapter').value;
+  const q    = document.getElementById('tf-question').value.trim();
+  const ans  = document.getElementById('tf-correct').value;
+  const msg  = document.getElementById('tf-msg');
+
+  if (!cls || !chap) {
+    msg.style.cssText='display:block;background:#450a0a;color:var(--red);padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:0.87rem;font-weight:600';
+    msg.textContent = '❌ Please select a Class and Chapter first.'; return;
+  }
+  if (!q || !ans) {
+    msg.style.cssText='display:block;background:#450a0a;color:var(--red);padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:0.87rem;font-weight:600';
+    msg.textContent = '❌ Please enter a statement and select True or False.'; return;
+  }
+
+  questions.push({ id: Date.now(), type:'truefalse', forClass: cls, forChapter: chap, question: q, answer: ans });
+  saveData(); refreshTeacher();
+
+  document.getElementById('tf-question').value='';
+  document.getElementById('tf-correct').value='';
+  msg.style.cssText='display:block;background:#14532d;color:var(--green);padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:0.87rem;font-weight:600';
+  msg.textContent = `✅ True/False added to Class ${cls} — ${chap}! (${questions.length} total)`;
+  setTimeout(()=>msg.style.display='none', 3500);
+}
+
+
+function buildRow(r) {
+  return [
+    r.studentName,
+    r.studentId,
+    'Class ' + (r.studentClass || '—'),
+    'Section ' + (r.section || '—'),
+    r.topic || '—',
+    r.score + '/' + r.total,
+    r.pct + '%',
+    calcGrade(r.pct),
+    r.pct >= settings.passScore ? 'Pass' : 'Fail'
+  ];
+}
+
+const XLS_HEADER = ['Student Name','Roll No.','Class','Section','Test Name','Marks','Percentage','Grade','Result'];
+
+function downloadExcel() {
+  if (!results.length) { showToast('⚠️ No results yet!'); return; }
+
+  function th(t){ return `<th style="background:#1a3a5c;color:white;font-weight:bold;border:1px solid #aaa;padding:7px 11px;font-family:Arial">${t}</th>`; }
+  function td(t,bg){ return `<td style="border:1px solid #ccc;padding:5px 10px;background:${bg||'white'};font-family:Arial">${t}</td>`; }
+  function gc(g){ return {A:'#bbf7d0',B:'#bfdbfe',C:'#fed7aa',D:'#fef08a',F:'#fecaca'}[g]||'white'; }
+
+  function tbl(rows, title) {
+    let h = `<table border="1" style="border-collapse:collapse;margin-bottom:24px">`;
+    if(title) h += `<tr><td colspan="9" style="background:#f97316;color:white;font-weight:bold;font-size:13pt;padding:8px;font-family:Arial">${title}</td></tr>`;
+    h += `<tr>${XLS_HEADER.map(th).join('')}</tr>`;
+    rows.forEach(row => {
+      h += '<tr>' + row.map((c,i) => td(c, i===7?gc(c):i===8?(c==='Pass'?'#bbf7d0':'#fecaca'):'white')).join('') + '</tr>';
+    });
+    return h + '</table>';
+  }
+
+  let html = `<html xmlns:o="urn:schemas-microsoft-com:office:office"><head><meta charset="UTF-8"></head><body>`;
+  html += `<h2 style="font-family:Arial;color:#f97316">All Results — ${results.length} students</h2>` + tbl(results.map(r=>buildRow(r)));
+
+  ['6','7','8'].forEach(cls => {
+    const cr = results.filter(r=>String(r.studentClass)===cls);
+    if(!cr.length) return;
+    const sorted = cr.sort((a,b)=>(a.section||'').localeCompare(b.section||'')||(a.topic||'').localeCompare(b.topic||'')||a.studentId.localeCompare(b.studentId));
+    html += `<h2 style="font-family:Arial;color:#f97316">Class ${cls} — All (${cr.length} students)</h2>` + tbl(sorted.map(r=>buildRow(r)));
+    [...new Set(cr.map(r=>r.topic||'General'))].forEach(topic => {
+      const tr = cr.filter(r=>(r.topic||'General')===topic).sort((a,b)=>(a.section||'').localeCompare(b.section||'')||a.studentId.localeCompare(b.studentId));
+      if(!tr.length) return;
+      html += `<h3 style="font-family:Arial;color:#3b82f6">Class ${cls} | ${topic} (${tr.length})</h3>` + tbl(tr.map(r=>buildRow(r)), `Class ${cls} — ${topic}`);
+    });
+  });
+
+  html += '</body></html>';
+  const blob = new Blob([html],{type:'application/vnd.ms-excel;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download='VocEd_Results_'+new Date().toISOString().slice(0,10)+'.xls';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),2000);
+  showToast('✅ Excel downloaded!');
+}
+
+function downloadCSV() {
+  if (!results.length) { showToast('⚠️ No results yet!'); return; }
+  let csv = XLS_HEADER.join(',') + '\n';
+  results.forEach(r => {
+    csv += buildRow(r).map(c=>{ const s=String(c??''); return (s.includes(',')||s.includes('"'))?'"'+s.replace(/"/g,'""')+'"':s; }).join(',') + '\n';
+  });
+  const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download='VocEd_Results_'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),2000);
+  showToast('✅ CSV downloaded! Import into Google Sheets: File → Import → Upload');
+}
+
+function openInSheets() { downloadCSV(); }
+
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ═══════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════
+(async () => {
+  loadLocal(); // show cached data instantly
+  refreshTeacher();
+  await loadData(); // then sync from cloud
+  refreshTeacher();
+  renderResults();
+})();
+</script>
+</body>
+</html>
